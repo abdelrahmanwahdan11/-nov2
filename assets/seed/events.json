@@ -1,0 +1,36 @@
+[
+  {
+    "id": "e_walk_001",
+    "type": "walk",
+    "title": "مسار مشي صباحي",
+    "description": "مسافة 4 كم بإيقاع هادئ.",
+    "level": "beginner",
+    "requirements": ["حذاء مريح", "قارورة ماء"],
+    "timeWindow": "morning",
+    "startAt": "2025-11-02T06:00:00",
+    "endAt": "2025-11-02T07:00:00",
+    "route": [
+      { "lat": 24.7139, "lon": 46.6760 },
+      { "lat": 24.7145, "lon": 46.6782 }
+    ],
+    "location": { "lat": 24.7139, "lon": 46.6760 },
+    "capacity": 20,
+    "fee": 0.0,
+    "organizerId": "u_pro_01"
+  },
+  {
+    "id": "e_street_010",
+    "type": "street",
+    "title": "تمرين شارع مسائي",
+    "description": "تمارين وزن الجسم للمستوى المتوسط.",
+    "level": "intermediate",
+    "requirements": ["قفازات", "منشفة"],
+    "timeWindow": "evening",
+    "startAt": "2025-11-02T20:00:00",
+    "endAt": "2025-11-02T21:00:00",
+    "location": { "lat": 24.7150, "lon": 46.6790 },
+    "capacity": 15,
+    "fee": 20.0,
+    "organizerId": "u_pro_02"
+  }
+]
