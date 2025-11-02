@@ -59,6 +59,10 @@ class BookingRepositoryImpl implements BookingRepository {
       throw StateError('الوقت المختار غير متاح');
     }
 
+    final payments = <String, bool>{
+      for (final id in participantIds) id: !splitPayment,
+    };
+
     final booking = Booking(
       id: 'bk_${DateTime.now().millisecondsSinceEpoch}',
       fieldId: fieldId,
@@ -68,10 +72,33 @@ class BookingRepositoryImpl implements BookingRepository {
       price: price,
       status: participantIds.length > 1 && splitPayment ? BookingStatus.pending : BookingStatus.confirmed,
       splitPayment: splitPayment,
+      payments: payments,
     );
 
     await _fieldRepository.reserveSlot(fieldId: fieldId, booking: booking);
     return booking;
+  }
+
+  @override
+  Future<Booking?> getBookingById(String id) async {
+    return _manager.box<Booking>(HiveBoxes.bookings).get(id);
+  }
+
+  @override
+  Future<bool> canCheckInBooking(String bookingId, String userId, DateTime timestamp) async {
+    final booking = _manager.box<Booking>(HiveBoxes.bookings).get(bookingId);
+    if (booking == null) {
+      return false;
+    }
+    if (!booking.userIds.contains(userId)) {
+      return false;
+    }
+    final windowStart = booking.start.subtract(const Duration(minutes: 15));
+    final windowEnd = booking.end.add(const Duration(minutes: 15));
+    if (timestamp.isBefore(windowStart) || timestamp.isAfter(windowEnd)) {
+      return false;
+    }
+    return booking.status != BookingStatus.cancelled;
   }
 
   @override

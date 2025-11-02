@@ -194,6 +194,33 @@ class _BookingDetailPageState extends ConsumerState<BookingDetailPage> {
             QrImageView(data: data, size: 180),
             const SizedBox(height: 8),
             const Text('يمكن مسح الرمز خلال 15 دقيقة من موعد الحجز.'),
+            const SizedBox(height: 12),
+            Text('حالة الحجز: ${booking.status.name}'),
+            if (booking.splitPayment) ...[
+              const SizedBox(height: 16),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('تقسيم الدفع', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              ...booking.payments.entries.map(
+                (entry) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(entry.value ? Icons.verified : Icons.hourglass_bottom),
+                  title: Text('المشارك: ${entry.key}'),
+                  subtitle: Text(entry.value ? 'مدفوع' : 'بانتظار الدفع'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: booking.payments[userId] == true
+                    ? null
+                    : () => ref.read(createBookingControllerProvider.notifier).markParticipantPaid(
+                          booking: booking,
+                          userId: userId,
+                        ),
+                child: const Text('تأكيد دفع حصتي'),
+              ),
+            ],
           ],
         ),
       ),

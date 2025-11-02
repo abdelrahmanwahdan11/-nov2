@@ -15,6 +15,7 @@ import '../../features/onboarding/presentation/onboarding_page.dart';
 import '../../features/profile/presentation/profile_page.dart';
 import '../../features/stories/presentation/stories_page.dart';
 import '../../features/wallet/presentation/wallet_page.dart';
+import '../../features/scan/presentation/scan_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -121,6 +122,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/auth',
         name: 'auth',
         builder: (context, state) => const AuthPage(),
+      ),
+      GoRoute(
+        path: '/scan',
+        name: 'scan',
+        builder: (context, state) {
+          final config = state.extra is ScanPageConfig ? state.extra as ScanPageConfig : null;
+          return ScanPage(config: config);
+        },
       ),
       GoRoute(
         path: '/onboarding',

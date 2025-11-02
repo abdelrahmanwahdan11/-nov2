@@ -14,6 +14,7 @@ import '../../models/story.dart';
 import '../../models/user.dart';
 import '../../models/venue.dart';
 import '../../models/wallet_tx.dart';
+import '../../models/notification_item.dart';
 import 'adapters.dart';
 import 'hive_boxes.dart';
 
@@ -62,6 +63,19 @@ class HiveManager {
     final firstUser = Hive.box<User>(HiveBoxes.users).values.firstOrNull;
     if (firstUser != null) {
       await metaBox.put('current_user_id', firstUser.id);
+      final notificationsBox = await Hive.openBox<NotificationItem>(HiveBoxes.notifications);
+      await notificationsBox.put(
+        'ntf_seed_complete',
+        NotificationItem(
+          id: 'ntf_seed_complete',
+          userId: firstUser.id,
+          title: 'تم تجهيز بيانات ساحة',
+          body: 'تم تحميل بيانات التجربة للعمل دون اتصال.',
+          createdAt: DateTime.now(),
+          read: false,
+          type: 'system',
+        ),
+      );
     }
 
     await metaBox.put('seed_version', _seedVersion);

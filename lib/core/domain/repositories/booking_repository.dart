@@ -11,5 +11,7 @@ abstract class BookingRepository {
     required double price,
     required bool splitPayment,
   });
+  Future<Booking?> getBookingById(String id);
+  Future<bool> canCheckInBooking(String bookingId, String userId, DateTime timestamp);
   Future<void> updateBooking(Booking booking);
 }

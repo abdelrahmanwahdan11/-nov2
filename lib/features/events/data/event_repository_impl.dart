@@ -96,6 +96,48 @@ class EventRepositoryImpl implements EventRepository {
     return distance <= 100;
   }
 
+  @override
+  Future<Event> createEvent({
+    required EventType type,
+    required String title,
+    required String description,
+    required Level level,
+    required List<String> requirements,
+    required TimeWindow timeWindow,
+    required DateTime startAt,
+    required DateTime endAt,
+    required GeoPoint location,
+    required int capacity,
+    required double fee,
+    required String organizerId,
+  }) async {
+    if (capacity <= 0) {
+      throw StateError('يجب أن تكون السعة أكبر من صفر');
+    }
+    if (!endAt.isAfter(startAt)) {
+      throw StateError('وقت النهاية يجب أن يكون بعد البداية');
+    }
+    final event = Event(
+      id: 'e_${DateTime.now().millisecondsSinceEpoch}',
+      type: type,
+      title: title,
+      description: description,
+      level: level,
+      requirements: requirements,
+      timeWindow: timeWindow,
+      startAt: startAt,
+      endAt: endAt,
+      route: null,
+      location: location,
+      capacity: capacity,
+      fee: fee,
+      organizerId: organizerId,
+      attendeeIds: const [],
+    );
+    await _manager.box<Event>(HiveBoxes.events).put(event.id, event);
+    return event;
+  }
+
   bool _matchesPreference(User user, Event event) {
     return user.preferences.any((pref) => pref.toLowerCase().contains(event.type.name));
   }

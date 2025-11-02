@@ -273,6 +273,10 @@ class BookingAdapter extends TypeAdapter<Booking> {
     final price = reader.readDouble();
     final status = BookingStatus.values[reader.readByte()];
     final splitPayment = reader.readBool();
+    final hasPayments = reader.readBool();
+    final payments = hasPayments
+        ? Map<String, bool>.from(reader.read() as Map)
+        : const <String, bool>{};
     return Booking(
       id: id,
       fieldId: fieldId,
@@ -282,6 +286,7 @@ class BookingAdapter extends TypeAdapter<Booking> {
       price: price,
       status: status,
       splitPayment: splitPayment,
+      payments: payments,
     );
   }
 
@@ -295,7 +300,11 @@ class BookingAdapter extends TypeAdapter<Booking> {
       ..writeInt(obj.end.millisecondsSinceEpoch)
       ..writeDouble(obj.price)
       ..writeByte(obj.status.index)
-      ..writeBool(obj.splitPayment);
+      ..writeBool(obj.splitPayment)
+      ..writeBool(obj.payments.isNotEmpty);
+    if (obj.payments.isNotEmpty) {
+      writer.write(obj.payments);
+    }
   }
 }
 

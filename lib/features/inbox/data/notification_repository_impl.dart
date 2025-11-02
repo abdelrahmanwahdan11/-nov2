@@ -44,4 +44,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
     }
     await box.put(notificationId, existing.copyWith(read: true));
   }
+
+  @override
+  Future<void> deleteNotification(String notificationId) async {
+    await _manager.box<NotificationItem>(HiveBoxes.notifications).delete(notificationId);
+  }
 }

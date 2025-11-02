@@ -10,6 +10,7 @@ import '../../../core/models/enums.dart';
 import '../../../core/models/event.dart';
 import '../../../core/models/venue.dart';
 import '../../../core/services/providers.dart';
+import '../../../core/config/app_config.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
@@ -122,14 +123,22 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                               onTap: (_, __) {},
                             ),
                             children: [
-                              TileLayer(
-                                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                subdomains: const ['a', 'b', 'c'],
-                              ),
+                              if (noNetworkMode)
+                                const _OfflineTileLayer()
+                              else
+                                TileLayer(
+                                  urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  subdomains: const ['a', 'b', 'c'],
+                                ),
                               MarkerLayer(markers: markers),
                             ],
                           ),
                         ),
+                        if (noNetworkMode)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text('وضع بلا اتصال: يتم استخدام خلفية متجهية مبسطة'),
+                          ),
                         if (_requestingLocation)
                           const Padding(
                             padding: EdgeInsets.all(8.0),
@@ -284,6 +293,51 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       },
     );
   }
+}
+
+class _OfflineTileLayer extends StatelessWidget {
+  const _OfflineTileLayer();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1A1D21), Color(0xFF0BA360)],
+            ),
+          ),
+          child: CustomPaint(
+            painter: _GridPainter(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.08)
+      ..strokeWidth = 1;
+    const step = 32.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _FilterBar extends StatelessWidget {

@@ -10,7 +10,8 @@ class Booking {
     required this.price,
     required this.status,
     required this.splitPayment,
-  });
+    Map<String, bool>? payments,
+  }) : payments = Map.unmodifiable(payments ?? const {});
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
@@ -22,6 +23,7 @@ class Booking {
       price: (json['price'] as num).toDouble(),
       status: bookingStatusFromString(json['status'] as String),
       splitPayment: json['splitPayment'] as bool,
+      payments: Map<String, bool>.from(json['payments'] as Map? ?? const {}),
     );
   }
 
@@ -33,6 +35,7 @@ class Booking {
   final double price;
   final BookingStatus status;
   final bool splitPayment;
+  final Map<String, bool> payments;
 
   Duration get duration => end.difference(start);
 
@@ -40,6 +43,7 @@ class Booking {
     List<String>? userIds,
     BookingStatus? status,
     bool? splitPayment,
+    Map<String, bool>? payments,
   }) {
     return Booking(
       id: id,
@@ -50,6 +54,19 @@ class Booking {
       price: price,
       status: status ?? this.status,
       splitPayment: splitPayment ?? this.splitPayment,
+      payments: payments ?? this.payments,
+    );
+  }
+
+  Booking markParticipantPaid(String userId) {
+    if (!payments.containsKey(userId)) {
+      return this;
+    }
+    final updatedPayments = Map<String, bool>.from(payments)..[userId] = true;
+    final allPaid = updatedPayments.isNotEmpty && updatedPayments.values.every((paid) => paid);
+    return copyWith(
+      payments: updatedPayments,
+      status: allPaid ? BookingStatus.confirmed : status,
     );
   }
 
@@ -62,5 +79,6 @@ class Booking {
         'price': price,
         'status': status.name,
         'splitPayment': splitPayment,
+        'payments': payments,
       };
 }

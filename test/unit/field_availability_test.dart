@@ -26,6 +26,7 @@ void main() {
       price: 100,
       status: BookingStatus.confirmed,
       splitPayment: false,
+      payments: const {'u1': true},
     );
 
     final isAvailable = field.isSlotAvailable(

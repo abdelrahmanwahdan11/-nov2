@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/models/event.dart';
 import '../../../core/models/geo_point.dart';
 import '../../../core/services/providers.dart';
 import '../../../shared/services/notifications.dart';
 import 'event_actions_controller.dart';
+import '../../scan/presentation/scan_page.dart';
+import '../../../core/models/notification_item.dart';
 
 class EventsPage extends ConsumerStatefulWidget {
   const EventsPage({super.key});
@@ -111,6 +113,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
   Future<void> _onJoinLeave(Event event, String userId, bool joined) async {
     setState(() => _loadingEvents.add(event.id));
     final actions = ref.read(eventActionsProvider);
+    final notificationRepo = ref.read(notificationRepositoryProvider);
     try {
       if (joined) {
         await actions.leave(event.id, userId);
@@ -128,6 +131,16 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             body: 'موعد ${event.title} يقترب',
           );
         }
+        await notificationRepo.upsertNotification(
+          NotificationItem(
+            id: 'ntf_event_${event.id}_$userId',
+            userId: userId,
+            title: 'انضممت إلى فعالية',
+            body: 'تم تسجيلك في ${event.title}.',
+            createdAt: DateTime.now(),
+            type: 'event',
+          ),
+        );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الانضمام')));
         }
@@ -144,22 +157,10 @@ class _EventsPageState extends ConsumerState<EventsPage> {
   }
 
   Future<void> _checkInQr(String eventId) async {
-    final actions = ref.read(eventActionsProvider);
-    await showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return _QrScannerSheet(
-          onCode: (code) async {
-            final isValid = code.contains(eventId) &&
-                await actions.canCheckInQr(eventId, DateTime.now());
-            if (!mounted) return;
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(isValid ? 'تم تأكيد الحضور QR' : 'رمز غير صالح')),
-            );
-          },
-        );
-      },
+    if (!mounted) return;
+    context.pushNamed(
+      'scan',
+      extra: ScanPageConfig(expectedType: 'event', expectedId: eventId),
     );
   }
 
@@ -183,36 +184,5 @@ class _EventsPageState extends ConsumerState<EventsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر التحقق: $error')));
     }
-  }
-}
-
-class _QrScannerSheet extends StatelessWidget {
-  const _QrScannerSheet({required this.onCode});
-
-  final ValueChanged<String> onCode;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 320,
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('امسح رمز الحضور'),
-          ),
-          Expanded(
-            child: MobileScanner(
-              onDetect: (capture) {
-                final barcode = capture.barcodes.first.rawValue;
-                if (barcode != null) {
-                  onCode(barcode);
-                }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
