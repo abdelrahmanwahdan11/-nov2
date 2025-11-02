@@ -1,59 +1,220 @@
 import 'package:flutter/widgets.dart';
 
-class AppLocalizations {
-  AppLocalizations._(this.locale);
+class SahaLocalizations {
+  SahaLocalizations(this.locale);
 
   final Locale locale;
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationDelegate();
+  static const supportedLocales = [Locale('ar'), Locale('en')];
 
-  static const Map<String, String> _strings = {
-    'app_title': 'ساحة',
-    'nav_home': 'الرئيسية',
-    'nav_explore': 'استكشاف',
-    'nav_create': 'إنشاء',
-    'nav_inbox': 'الرسائل',
-    'nav_profile': 'حسابي',
-    'cta_book_now': 'احجز الآن',
-    'cta_join': 'انضم',
-    'cta_pay': 'ادفع',
-    'filters': 'فلاتر',
-    'requirements': 'المتطلبات',
-    'level': 'المستوى',
-    'price': 'السعر',
-    'capacity': 'السعة',
-    'location': 'الموقع',
-    'time': 'الوقت',
-    'health': 'الصحة',
-    'stories': 'القصص',
-    'wallet': 'المحفظة',
-    'checkin': 'تأكيد الحضور',
-    'no_results': 'لا توجد نتائج',
-    'seed_loaded': 'تم تحميل بيانات التجربة',
-    'split_payment': 'تقسيم الدفع',
-    'morning': 'الصباح',
-    'evening': 'المساء',
+  static const _localizedStrings = <String, Map<String, String>>{
+    'ar': {
+      'home': 'الرئيسية',
+      'saved': 'محفوظ',
+      'plan': 'برنامجي',
+      'inbox': 'الرسائل',
+      'profile': 'حسابي',
+      'book_field': 'احجز ملعبًا',
+      'join_challenge': 'انضم لتحدٍ',
+      'street_workout': 'تمارين شارع',
+      'walk_routes': 'مسارات مشي',
+      'search_hint': 'ماذا تريد أن تمارس اليوم؟',
+      'ai_insight': 'تحليل ذكاء اصطناعي',
+      'explore_now': 'استكشف الآن',
+      'enroll_now': 'اشترك الآن',
+      'get_started': 'ابدأ الآن',
+      'continue_guest': 'الدخول كضيف',
+      'email': 'البريد الإلكتروني',
+      'password': 'كلمة المرور',
+      'show_password': 'إظهار كلمة المرور',
+      'forgot_password': 'نسيت كلمة المرور؟',
+      'create_account': 'إنشاء حساب',
+      'sign_in': 'تسجيل الدخول',
+      'filters': 'فلاتر',
+      'level': 'المستوى',
+      'price': 'السعر',
+      'time': 'الوقت',
+      'distance': 'المسافة',
+      'apply': 'تطبيق',
+      'cancel': 'إلغاء',
+      'today': 'اليوم',
+      'week': 'الأسبوع',
+      'see_all': 'عرض الكل',
+      'no_results': 'لا توجد نتائج',
+      'retry': 'إعادة المحاولة',
+      'coachmarks_title': 'جولة سريعة',
+      'coachmarks_next': 'التالي',
+      'coachmarks_done': 'تم',
+      'primary_color': 'اللون الرئيسي',
+      'dark_mode': 'الوضع الداكن',
+      'language': 'اللغة',
+      'ai_stub_msg': 'ميزة قادمة: سنعرض تحليلاً متقدمًا لحالتك الرياضية بناءً على نشاطك وقياساتك.',
+      'welcome_title': 'مرحبا بك في ساحة',
+      'welcome_desc': 'منصة رياضية واحدة للحجز والتحديات ومسارات المشي.',
+      'continue': 'متابعة',
+      'guest_mode': 'وضع الضيف',
+      'password_hint': 'أدخل كلمة المرور',
+      'invalid_email': 'يرجى إدخال بريد إلكتروني صحيح',
+      'invalid_password': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على أحرف كبيرة وصغيرة ورقم.',
+      'name': 'الاسم',
+      'sign_up': 'تسجيل حساب',
+      'or': 'أو',
+      'book_now': 'احجز الآن',
+      'join_now': 'انضم الآن',
+      'start_now': 'ابدأ الآن',
+      'ai_center': 'مركز الذكاء الاصطناعي',
+      'close': 'إغلاق',
+      'settings': 'الإعدادات',
+      'theme': 'السمة',
+      'coachmarks_replay': 'إعادة الجولة',
+      'about': 'عن التطبيق',
+      'mock_story': 'قصص محترفين',
+      'saved_empty': 'لم تحفظ أي عناصر بعد.',
+      'plan_overview': 'نظرة عامة على برنامجي',
+      'weekly_activity': 'نشاط الأسبوع',
+      'completed_challenges': 'تحديات مكتملة',
+      'next_bookings': 'الحجوزات القادمة',
+      'inbox_empty': 'لا رسائل جديدة.',
+      'profile_badges': 'أوسمتي',
+      'profile_activity': 'سجل النشاط',
+      'language_ar': 'العربية',
+      'language_en': 'الإنجليزية',
+      'primary_color_picker': 'اختر لونًا رئيسيًا',
+      'search': 'بحث',
+      'search_results': 'نتائج البحث',
+      'catalog': 'كتالوج الأنشطة',
+      'filters_reset': 'إعادة تعيين',
+      'guest_continue': 'تابع كضيف',
+      'signin_success': 'تم تسجيل الدخول بنجاح (محاكاة).',
+      'ai_cta': 'اكتشف رؤى الذكاء الاصطناعي',
+      'book_field_title': 'احجز ملعبك',
+      'venues': 'الملاعب',
+      'challenges': 'التحديات',
+      'all': 'الكل',
+      'beginner': 'مبتدئ',
+      'intermediate': 'متوسط',
+      'advanced': 'متقدم',
+      'all_levels': 'كل المستويات',
+      'available_slots': 'الأوقات المتاحة',
+      'policies': 'السياسات',
+      'comment': 'أرسل تعليقًا',
+      'save': 'حفظ',
+    },
+    'en': {
+      'home': 'Home',
+      'saved': 'Saved',
+      'plan': 'My Plan',
+      'inbox': 'Inbox',
+      'profile': 'Profile',
+      'book_field': 'Book a Field',
+      'join_challenge': 'Join a Challenge',
+      'street_workout': 'Street Workout',
+      'walk_routes': 'Walk Routes',
+      'search_hint': 'What do you want to do today?',
+      'ai_insight': 'AI Insight',
+      'explore_now': 'Explore Now',
+      'enroll_now': 'Enroll Now',
+      'get_started': 'Get Started',
+      'continue_guest': 'Continue as Guest',
+      'email': 'Email',
+      'password': 'Password',
+      'show_password': 'Show Password',
+      'forgot_password': 'Forgot password?',
+      'create_account': 'Create Account',
+      'sign_in': 'Sign In',
+      'filters': 'Filters',
+      'level': 'Level',
+      'price': 'Price',
+      'time': 'Time',
+      'distance': 'Distance',
+      'apply': 'Apply',
+      'cancel': 'Cancel',
+      'today': 'Today',
+      'week': 'Week',
+      'see_all': 'See all',
+      'no_results': 'No results',
+      'retry': 'Retry',
+      'coachmarks_title': 'Quick Tour',
+      'coachmarks_next': 'Next',
+      'coachmarks_done': 'Done',
+      'primary_color': 'Primary Color',
+      'dark_mode': 'Dark Mode',
+      'language': 'Language',
+      'ai_stub_msg': 'Coming soon: advanced AI analysis of your fitness based on your activity & metrics.',
+      'welcome_title': 'Welcome to Saha',
+      'welcome_desc': 'One sports hub for booking, challenges, walks & insights.',
+      'continue': 'Continue',
+      'guest_mode': 'Guest Mode',
+      'password_hint': 'Enter password',
+      'invalid_email': 'Please enter a valid email address.',
+      'invalid_password': 'Password must be at least 8 chars with upper, lower and digit.',
+      'name': 'Name',
+      'sign_up': 'Sign Up',
+      'or': 'or',
+      'book_now': 'Book Now',
+      'join_now': 'Join Now',
+      'start_now': 'Start Now',
+      'ai_center': 'AI Insight Center',
+      'close': 'Close',
+      'settings': 'Settings',
+      'theme': 'Theme',
+      'coachmarks_replay': 'Replay tour',
+      'about': 'About',
+      'mock_story': 'Pro Stories',
+      'saved_empty': 'No items saved yet.',
+      'plan_overview': 'My Plan Overview',
+      'weekly_activity': 'Weekly Activity',
+      'completed_challenges': 'Completed Challenges',
+      'next_bookings': 'Next Bookings',
+      'inbox_empty': 'No new messages.',
+      'profile_badges': 'Badges',
+      'profile_activity': 'Activity History',
+      'language_ar': 'Arabic',
+      'language_en': 'English',
+      'primary_color_picker': 'Pick a primary color',
+      'search': 'Search',
+      'search_results': 'Search Results',
+      'catalog': 'Activities Catalog',
+      'filters_reset': 'Reset',
+      'guest_continue': 'Continue as guest',
+      'signin_success': 'Signed in successfully (mock).',
+      'ai_cta': 'Discover AI insights',
+      'book_field_title': 'Book your field',
+      'venues': 'Venues',
+      'challenges': 'Challenges',
+      'all': 'All',
+      'beginner': 'Beginner',
+      'intermediate': 'Intermediate',
+      'advanced': 'Advanced',
+      'all_levels': 'All levels',
+      'available_slots': 'Available slots',
+      'policies': 'Policies',
+      'comment': 'Send a comment',
+      'save': 'Save',
+    }
   };
 
-  String translate(String key) => _strings[key] ?? key;
+  String get languageCode => locale.languageCode;
 
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations) ??
-        AppLocalizations._(Localizations.localeOf(context));
+  String t(String key) {
+    final languageMap = _localizedStrings[locale.languageCode] ?? _localizedStrings['ar']!;
+    return languageMap[key] ?? key;
+  }
+
+  static SahaLocalizations of(BuildContext context) {
+    return Localizations.of<SahaLocalizations>(context, SahaLocalizations)!;
   }
 }
 
-class _AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
-  const _AppLocalizationDelegate();
+class SahaLocalizationsDelegate extends LocalizationsDelegate<SahaLocalizations> {
+  const SahaLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'ar';
+  bool isSupported(Locale locale) => ['ar', 'en'].contains(locale.languageCode);
 
   @override
-  Future<AppLocalizations> load(Locale locale) async {
-    return AppLocalizations._(locale);
-  }
+  Future<SahaLocalizations> load(Locale locale) async => SahaLocalizations(locale);
 
   @override
-  bool shouldReload(_AppLocalizationDelegate old) => false;
+  bool shouldReload(covariant LocalizationsDelegate<SahaLocalizations> old) => false;
 }
