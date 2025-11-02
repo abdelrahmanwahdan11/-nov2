@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_gradients.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../widgets/primary_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -56,9 +57,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _timer = Timer.periodic(const Duration(milliseconds: 3500), (timer) {
       if (!mounted) return;
       final next = (_currentIndex + 1) % _slides.length;
+      final duration = AppMotion.duration(context, const Duration(milliseconds: 600));
       _controller.animateToPage(
         next,
-        duration: const Duration(milliseconds: 600),
+        duration: duration,
         curve: Curves.easeInOut,
       );
     });
@@ -76,6 +78,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = SahaLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final langCode = l10n.languageCode;
+
+    final heroFadeDuration = AppMotion.duration(context, const Duration(milliseconds: 600));
+    final controlsFadeDuration = AppMotion.duration(context, const Duration(milliseconds: 400));
+    final skipFadeDuration = AppMotion.duration(context, const Duration(milliseconds: 500));
 
     return Scaffold(
       body: Stack(
@@ -108,7 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       textAlign: TextAlign.center,
                     )
                         .animate()
-                        .fadeIn(duration: const Duration(milliseconds: 600))
+                        .fadeIn(duration: heroFadeDuration)
                         .slideY(begin: 0.3, end: 0),
                   ),
                 ],
@@ -161,7 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ],
             )
                 .animate()
-                .fadeIn(duration: const Duration(milliseconds: 400))
+                .fadeIn(duration: controlsFadeDuration)
                 .slideY(begin: 0.2, end: 0),
           ),
           Positioned(
@@ -177,7 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           )
               .animate()
-              .fadeIn(duration: const Duration(milliseconds: 500))
+              .fadeIn(duration: skipFadeDuration)
               .slideX(begin: 0.2, end: 0),
         ],
       ),

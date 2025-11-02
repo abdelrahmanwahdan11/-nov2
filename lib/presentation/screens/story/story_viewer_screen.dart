@@ -37,8 +37,11 @@ class StoryViewerScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
-                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1552196563-55cd4e45efb3'),
+                      Semantics(
+                        label: l10n.t('mock_story'),
+                        child: const CircleAvatar(
+                          backgroundImage: NetworkImage('https://images.unsplash.com/photo-1552196563-55cd4e45efb3'),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Text('Pro Athlete', style: theme.textTheme.titleMedium?.copyWith(color: Colors.white)),
