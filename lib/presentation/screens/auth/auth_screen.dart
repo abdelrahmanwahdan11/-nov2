@@ -24,6 +24,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   String? _infoMessage;
   double _passwordStrength = 0;
 
@@ -46,6 +47,8 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       stage = newStage;
       _infoMessage = null;
+      _isPasswordVisible = false;
+      _isConfirmPasswordVisible = false;
       if (newStage != AuthStage.signUp) {
         _confirmPasswordController.clear();
         _passwordStrength = 0;
@@ -149,7 +152,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      await AppStore.instance.setAuthenticated(false);
+                      if (!mounted) return;
                       AppRouter.instance.setRoot('/home');
                     },
                     child: Text(l10n.t('guest_continue')),
@@ -234,9 +239,10 @@ class _AuthScreenState extends State<AuthScreen> {
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(labelText: l10n.t('name')),
+              textInputAction: TextInputAction.next,
               validator: (value) {
                 if (value == null || value.trim().length < 2) {
-                  return l10n.t('name');
+                  return l10n.t('invalid_name');
                 }
                 return null;
               },
@@ -278,8 +284,23 @@ class _AuthScreenState extends State<AuthScreen> {
           if (includeName)
             TextFormField(
               controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: l10n.t('confirm_password')),
+              obscureText: !_isConfirmPasswordVisible,
+              decoration: InputDecoration(
+                labelText: l10n.t('confirm_password'),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isConfirmPasswordVisible
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: AppColors.primary,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                    });
+                  },
+                ),
+              ),
               validator: (value) {
                 if (value != _passwordController.text) {
                   return l10n.t('passwords_mismatch');
@@ -343,7 +364,7 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 12),
             TextButton(
               onPressed: () async {
-                await AppStore.instance.setAuthenticated(true);
+                await AppStore.instance.setAuthenticated(false);
                 if (!mounted) return;
                 AppRouter.instance.setRoot('/home');
               },

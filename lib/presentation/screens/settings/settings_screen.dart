@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../application/stores/app_store.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/signals/signal.dart';
 import '../../widgets/primary_button.dart';
 
@@ -18,6 +19,8 @@ class SettingsScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
+        Text(l10n.t('app_settings'), style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
         SignalBuilder<bool>(
           signal: store.darkModeSignal,
           builder: (context, isDark, _) {
@@ -106,7 +109,44 @@ class SettingsScreen extends StatelessWidget {
           trailing: const Icon(Icons.play_circle_outline),
           onTap: () => store.setCoachmarksSeen(false),
         ),
+        const SizedBox(height: 32),
+        Text(l10n.t('account_settings'), style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.person_outline),
+          title: Text(l10n.t('edit_profile')),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.t('coming_soon'))),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.lock_reset),
+          title: Text(l10n.t('change_password')),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.t('coming_soon'))),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.logout),
+          title: Text(l10n.t('sign_out')),
+          onTap: () async {
+            await store.setAuthenticated(false);
+            AppRouter.instance.setRoot('/auth');
+          },
+        ),
+        const SizedBox(height: 24),
         ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           tileColor: theme.cardColor,
