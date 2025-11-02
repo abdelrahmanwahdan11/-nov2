@@ -34,9 +34,9 @@ class SettingsScreen extends StatelessWidget {
             return DropdownButtonFormField<String>(
               value: locale.languageCode,
               decoration: InputDecoration(labelText: l10n.t('language')),
-              items: const [
-                DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                DropdownMenuItem(value: 'en', child: Text('English')),
+              items: [
+                DropdownMenuItem(value: 'ar', child: Text(l10n.t('language_ar'))),
+                DropdownMenuItem(value: 'en', child: Text(l10n.t('language_en'))),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -57,7 +57,8 @@ class SettingsScreen extends StatelessWidget {
               Color(0xFF22D3EE),
               Color(0xFFF72585),
               Color(0xFF22C55E),
-              Color(0xFFF97316),
+              Color(0xFFF59E0B),
+              Color(0xFFEF4444),
             ];
             return Wrap(
               spacing: 12,
@@ -99,6 +100,12 @@ class SettingsScreen extends StatelessWidget {
           tileColor: theme.cardColor,
           title: Text(l10n.t('about')),
           subtitle: const Text('إصدار تجريبي - بدون باك إند'),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: store.resetAppearance,
+          icon: const Icon(Icons.refresh),
+          label: Text(l10n.t('reset_defaults')),
         ),
       ],
     );

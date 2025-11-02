@@ -8,6 +8,7 @@ import '../../presentation/screens/catalog/catalog_screen.dart';
 import '../../presentation/screens/challenges/event_detail_screen.dart';
 import '../../presentation/screens/onboarding/onboarding_screen.dart';
 import '../../presentation/screens/search/search_screen.dart';
+import '../../presentation/screens/explore/explore_map_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/shared/home_shell.dart';
 import '../../presentation/screens/story/story_viewer_screen.dart';
@@ -78,6 +79,8 @@ class AppRouter extends ChangeNotifier {
           key: key,
           child: CatalogScreen(initialType: _mapType(type)),
         );
+      case 'explore':
+        return MaterialPage(key: key, child: const ExploreMapScreen());
       case 'search':
         return MaterialPage(key: key, child: const SearchScreen());
       case 'booking':

@@ -33,7 +33,10 @@ class AppStore {
 
     final primaryHex = _prefs!.getString('primary_color_hex');
     if (primaryHex != null) {
-      primaryColorSignal.emit(Color(int.parse(primaryHex, radix: 16)));
+      final parsed = int.tryParse(primaryHex, radix: 16);
+      if (parsed != null) {
+        primaryColorSignal.emit(Color(parsed));
+      }
     }
 
     final onboardingDone = _prefs!.getBool('onboarding_done') ?? false;
@@ -66,7 +69,14 @@ class AppStore {
 
   Future<void> setPrimaryColor(Color color) async {
     primaryColorSignal.emit(color);
-    await _prefs?.setString('primary_color_hex', color.value.toRadixString(16));
+    final hex = color.value.toRadixString(16).padLeft(8, '0');
+    await _prefs?.setString('primary_color_hex', hex);
+  }
+
+  Future<void> resetAppearance() async {
+    await setLocale(const Locale('ar'));
+    await setDarkMode(true);
+    await setPrimaryColor(AppColors.primary);
   }
 
   Future<void> markOnboardingDone() async {

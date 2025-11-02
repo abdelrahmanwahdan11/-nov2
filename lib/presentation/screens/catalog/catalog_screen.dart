@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../application/services/catalog_service.dart';
 import '../../../application/services/service_locator.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../components/venue_card.dart';
+import '../../widgets/catalog_item_overlay.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
 class CatalogScreen extends StatefulWidget {
@@ -18,15 +20,30 @@ class CatalogScreen extends StatefulWidget {
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
+  static const _pageSize = 10;
   CatalogType? _selectedType;
   String? _levelFilter;
-  late Future<List<CatalogItem>> _future;
+  late final CatalogService _service;
+  final ScrollController _scrollController = ScrollController();
+  final List<CatalogItem> _items = [];
+  bool _isLoading = false;
+  bool _initialLoading = true;
+  bool _hasMore = true;
+  int _page = 0;
 
   @override
   void initState() {
     super.initState();
     _selectedType = widget.initialType;
-    _future = ServiceLocator.instance.catalogService.loadAll();
+    _service = ServiceLocator.instance.catalogService;
+    _scrollController.addListener(_onScroll);
+    _fetch(reset: true);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _applyFilters({CatalogType? type, String? level}) {
@@ -34,6 +51,72 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _selectedType = type;
       _levelFilter = level;
     });
+    _fetch(reset: true);
+  }
+
+  Future<void> _fetch({bool reset = false}) async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+      if (reset) {
+        _initialLoading = _items.isEmpty;
+      }
+    });
+
+    if (reset) {
+      _items.clear();
+      _hasMore = true;
+      _page = 0;
+    }
+
+    final result = await _service.loadPage(
+      page: _page,
+      pageSize: _pageSize,
+      type: _selectedType,
+      level: _levelFilter,
+    );
+
+    setState(() {
+      _items.addAll(result.items);
+      _hasMore = result.hasMore;
+      _page += result.items.isEmpty ? 0 : 1;
+      _isLoading = false;
+      _initialLoading = false;
+    });
+  }
+
+  void _onScroll() {
+    if (!_hasMore || _isLoading) return;
+    if (_scrollController.position.extentAfter < 280) {
+      _fetch();
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await _fetch(reset: true);
+  }
+
+  void _openItem(CatalogItem item) {
+    final heroTag = 'catalog_${item.id}';
+    CatalogItemOverlay.show(
+      context,
+      item: item,
+      heroTag: heroTag,
+      onPrimaryAction: () {
+        Navigator.of(context).pop();
+        switch (item.type) {
+          case CatalogType.venue:
+            AppRouter.instance.push('/booking/${item.id}');
+            break;
+          case CatalogType.walkRoute:
+          case CatalogType.challenge:
+          case CatalogType.streetWorkout:
+          case CatalogType.training:
+            AppRouter.instance.push('/event/${item.id}');
+            break;
+        }
+      },
+    );
   }
 
   @override
@@ -50,81 +133,91 @@ class _CatalogScreenState extends State<CatalogScreen> {
             icon: const Icon(Icons.refresh),
             tooltip: l10n.t('filters_reset'),
           ),
+          IconButton(
+            onPressed: () => AppRouter.instance.push('/explore'),
+            icon: const Icon(Icons.map_outlined),
+            tooltip: l10n.t('explore_map'),
+          ),
         ],
       ),
-      body: FutureBuilder<List<CatalogItem>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return GridView.count(
-              padding: const EdgeInsets.all(24),
-              crossAxisCount: 2,
-              childAspectRatio: 0.74,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: const [
-                ShimmerPlaceholder(),
-                ShimmerPlaceholder(),
-                ShimmerPlaceholder(),
-                ShimmerPlaceholder(),
-              ],
-            );
-          }
-          final items = snapshot.data!
-              .where((item) => _selectedType == null || item.type == _selectedType)
-              .where((item) => _levelFilter == null || item.level == _levelFilter)
-              .toList();
-
-          return Column(
-            children: [
-              _FiltersBar(
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: _scrollController,
+          slivers: [
+            SliverToBoxAdapter(
+              child: _FiltersBar(
                 l10n: l10n,
                 selectedType: _selectedType,
                 levelFilter: _levelFilter,
                 onTypeSelected: (type) => _applyFilters(type: type, level: _levelFilter),
                 onLevelSelected: (level) => _applyFilters(type: _selectedType, level: level),
               ),
-              Expanded(
-                child: items.isEmpty
-                    ? Center(child: Text(l10n.t('no_results')))
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(24),
-                        itemCount: items.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.74,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
+            ),
+            if (_initialLoading)
+              SliverPadding(
+                padding: const EdgeInsets.all(24),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 320,
+                    childAspectRatio: 0.74,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => const ShimmerPlaceholder(),
+                    childCount: 6,
+                  ),
+                ),
+              )
+            else if (_items.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: Text(l10n.t('no_results'))),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(24),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 320,
+                    childAspectRatio: 0.74,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= _items.length) {
+                        return const ShimmerPlaceholder();
+                      }
+                      final item = _items[index];
+                      final heroTag = 'catalog_${item.id}';
+                      return Animate(
+                        effects: const [FadeEffect(duration: Duration(milliseconds: 220))],
+                        child: VenueCard(
+                          item: item,
+                          heroTag: heroTag,
+                          onTap: () => _openItem(item),
                         ),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Animate(
-                            effects: const [FadeEffect(duration: Duration(milliseconds: 250))],
-                            child: VenueCard(
-                              item: item,
-                              onTap: () {
-                                switch (item.type) {
-                                  case CatalogType.venue:
-                                    AppRouter.instance.push('/booking/${item.id}');
-                                    break;
-                                  case CatalogType.walkRoute:
-                                    AppRouter.instance.push('/event/${item.id}');
-                                    break;
-                                  case CatalogType.challenge:
-                                  case CatalogType.streetWorkout:
-                                  case CatalogType.training:
-                                    AppRouter.instance.push('/event/${item.id}');
-                                    break;
-                                }
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                      );
+                    },
+                    childCount: _items.length + (_isLoading && _hasMore ? 2 : 0),
+                  ),
+                ),
               ),
-            ],
-          );
-        },
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: _isLoading && !_initialLoading
+                      ? Text(l10n.t('loading_more'), style: theme.textTheme.bodyMedium)
+                      : const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

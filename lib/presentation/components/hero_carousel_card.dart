@@ -9,6 +9,7 @@ class HeroCarouselCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.heroTag,
   });
 
   final String id;
@@ -16,10 +17,12 @@ class HeroCarouselCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tag = heroTag ?? 'catalog_$id';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: GestureDetector(
@@ -30,7 +33,7 @@ class HeroCarouselCard extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               Hero(
-                tag: 'hero-card-$id',
+                tag: tag,
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,

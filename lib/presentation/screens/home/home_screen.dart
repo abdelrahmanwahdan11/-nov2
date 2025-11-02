@@ -11,6 +11,7 @@ import '../../components/health_widget.dart';
 import '../../components/hero_carousel_card.dart';
 import '../../components/quick_action_button.dart';
 import '../../components/venue_card.dart';
+import '../../widgets/catalog_item_overlay.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,6 +49,29 @@ class _HomeScreenState extends State<HomeScreen> {
       _future = _load();
     });
     await _future;
+  }
+
+  void _openItem(CatalogItem item) {
+    final heroTag = 'catalog_${item.id}';
+    CatalogItemOverlay.show(
+      context,
+      item: item,
+      heroTag: heroTag,
+      onPrimaryAction: () {
+        Navigator.of(context).pop();
+        switch (item.type) {
+          case CatalogType.venue:
+            AppRouter.instance.push('/booking/${item.id}');
+            break;
+          case CatalogType.walkRoute:
+          case CatalogType.challenge:
+          case CatalogType.streetWorkout:
+          case CatalogType.training:
+            AppRouter.instance.push('/event/${item.id}');
+            break;
+        }
+      },
+    );
   }
 
   @override
@@ -109,6 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 12),
                       IconButton(
+                        onPressed: () => AppRouter.instance.push('/explore'),
+                        icon: const Icon(Icons.map_outlined),
+                        tooltip: l10n.t('explore_map'),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
                         onPressed: () => AppRouter.instance.push('/catalog'),
                         icon: const Icon(Icons.tune),
                         tooltip: l10n.t('filters'),
@@ -161,7 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         imageUrl: item.imageUrl,
                         title: item.title,
                         subtitle: l10n.t('explore_now'),
-                        onTap: () => AppRouter.instance.push('/booking/${item.id}'),
+                        heroTag: 'catalog_${item.id}',
+                        onTap: () => _openItem(item),
                       );
                     },
                   ),
@@ -197,7 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         final item = topVenues[index];
                         return VenueCard(
                           item: item,
-                          onTap: () => AppRouter.instance.push('/booking/${item.id}'),
+                          heroTag: 'catalog_${item.id}',
+                          onTap: () => _openItem(item),
                         );
                       },
                       childCount: topVenues.length,
@@ -224,7 +256,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: EventCard(
                       item: item,
-                      onTap: () => AppRouter.instance.push('/event/${item.id}'),
+                      heroTag: 'catalog_${item.id}',
+                      onTap: () => _openItem(item),
                     ),
                   );
                 },

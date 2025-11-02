@@ -20,14 +20,23 @@ class _AuthScreenState extends State<AuthScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
   String? _infoMessage;
+  double _passwordStrength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_updateStrength);
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -35,6 +44,10 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       stage = newStage;
       _infoMessage = null;
+      if (newStage != AuthStage.signUp) {
+        _confirmPasswordController.clear();
+        _passwordStrength = 0;
+      }
     });
   }
 
@@ -65,6 +78,37 @@ class _AuthScreenState extends State<AuthScreen> {
       return SahaLocalizations.of(context).t('invalid_email');
     }
     return null;
+  }
+
+  void _updateStrength() {
+    final value = _passwordController.text;
+    setState(() {
+      _passwordStrength = _calculateStrength(value);
+    });
+  }
+
+  double _calculateStrength(String value) {
+    if (value.isEmpty) {
+      return 0;
+    }
+    double score = 0;
+    if (value.length >= 8) score += 0.25;
+    if (value.contains(RegExp(r'[A-Z]'))) score += 0.25;
+    if (value.contains(RegExp(r'[a-z]'))) score += 0.25;
+    if (value.contains(RegExp(r'[0-9]')) || value.contains(RegExp(r'[!@#\$%^&*]'))) {
+      score += 0.25;
+    }
+    return score.clamp(0, 1);
+  }
+
+  String _strengthLabel(SahaLocalizations l10n) {
+    if (_passwordStrength >= 0.75) {
+      return l10n.t('password_strength_strong');
+    }
+    if (_passwordStrength >= 0.5) {
+      return l10n.t('password_strength_medium');
+    }
+    return l10n.t('password_strength_weak');
   }
 
   String? _validatePassword(String? value) {
@@ -223,14 +267,34 @@ class _AuthScreenState extends State<AuthScreen> {
             validator: _validatePassword,
           ),
           const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => _switchStage(AuthStage.forgotPassword),
-              child: Text(l10n.t('forgot_password')),
+          if (includeName)
+            _PasswordStrengthIndicator(
+              strength: _passwordStrength,
+              label: '${l10n.t('password_strength')}: ${_strengthLabel(l10n)}',
             ),
-          ),
-          const SizedBox(height: 16),
+          if (includeName) const SizedBox(height: 12),
+          if (includeName)
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: l10n.t('confirm_password')),
+              validator: (value) {
+                if (value != _passwordController.text) {
+                  return l10n.t('passwords_mismatch');
+                }
+                return null;
+              },
+            ),
+          if (includeName) const SizedBox(height: 12),
+          if (!includeName)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => _switchStage(AuthStage.forgotPassword),
+                child: Text(l10n.t('forgot_password')),
+              ),
+            ),
+          if (!includeName) const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _handleSubmit,
             child: Text(title),
@@ -301,5 +365,33 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Text(l10n.t('sign_in')),
         );
     }
+  }
+}
+
+class _PasswordStrengthIndicator extends StatelessWidget {
+  const _PasswordStrengthIndicator({required this.strength, required this.label});
+
+  final double strength;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Color color;
+    if (strength >= 0.75) {
+      color = Colors.greenAccent;
+    } else if (strength >= 0.5) {
+      color = Colors.orangeAccent;
+    } else {
+      color = Colors.redAccent;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LinearProgressIndicator(value: strength, color: color, backgroundColor: theme.cardColor.withOpacity(0.4)),
+        const SizedBox(height: 4),
+        Text(label, style: theme.textTheme.bodySmall),
+      ],
+    );
   }
 }

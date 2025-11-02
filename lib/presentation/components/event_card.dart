@@ -8,10 +8,12 @@ class EventCard extends StatelessWidget {
     super.key,
     required this.item,
     required this.onTap,
+    this.heroTag,
   });
 
   final CatalogItem item;
   final VoidCallback onTap;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +27,22 @@ class EventCard extends StatelessWidget {
         contentPadding: const EdgeInsets.all(16),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            item.imageUrl,
-            width: 64,
-            height: 64,
-            fit: BoxFit.cover,
-          ),
+          child: heroTag != null
+              ? Hero(
+                  tag: heroTag!,
+                  child: Image.network(
+                    item.imageUrl,
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Image.network(
+                  item.imageUrl,
+                  width: 64,
+                  height: 64,
+                  fit: BoxFit.cover,
+                ),
         ),
         title: Text(item.title, style: theme.textTheme.titleMedium),
         subtitle: Padding(
