@@ -4,18 +4,53 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../application/services/service_locator.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../domain/entities/catalog_item.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_state.dart';
 
-class BookingScreen extends StatelessWidget {
+class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key, required this.venueId});
 
   final String venueId;
 
   @override
+  State<BookingScreen> createState() => _BookingScreenState();
+}
+
+class _BookingScreenState extends State<BookingScreen> {
+  late Future<CatalogItem?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = ServiceLocator.instance.catalogService.findById(widget.venueId);
+  }
+
+  void _reload() {
+    setState(() {
+      _future = ServiceLocator.instance.catalogService.findById(widget.venueId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = SahaLocalizations.of(context);
     return FutureBuilder<CatalogItem?>(
-      future: ServiceLocator.instance.catalogService.findById(venueId),
+      future: _future,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(
+              child: ErrorState(
+                title: l10n.t('error_generic'),
+                subtitle: snapshot.error.toString(),
+                icon: Icons.error_outline,
+                retryLabel: l10n.t('retry'),
+                onRetry: _reload,
+              ),
+            ),
+          );
+        }
         if (!snapshot.hasData) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
@@ -23,7 +58,12 @@ class BookingScreen extends StatelessWidget {
         if (venue == null) {
           return Scaffold(
             appBar: AppBar(),
-            body: Center(child: Text(l10n.t('no_results'))),
+            body: Center(
+              child: EmptyState(
+                title: l10n.t('no_results'),
+                icon: Icons.search_off,
+              ),
+            ),
           );
         }
         final theme = Theme.of(context);
@@ -36,7 +76,12 @@ class BookingScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 child: Hero(
                   tag: 'hero-card-${venue.id}',
-                  child: Image.network(venue.imageUrl, height: 200, fit: BoxFit.cover),
+                  child: Image.network(
+                    venue.imageUrl,
+                    height: 200,
+                    fit: BoxFit.cover,
+                    semanticLabel: venue.title,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

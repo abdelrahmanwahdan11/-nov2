@@ -32,6 +32,7 @@ class VenueCard extends StatelessWidget {
               child: Image.network(
                 item.imageUrl,
                 fit: BoxFit.cover,
+                semanticLabel: item.title,
               ),
             ),
           ),

@@ -12,10 +12,19 @@ import '../../components/hero_carousel_card.dart';
 import '../../components/quick_action_button.dart';
 import '../../components/venue_card.dart';
 import '../../widgets/catalog_item_overlay.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_state.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.quickActionsKey,
+    this.searchBarKey,
+  });
+
+  final GlobalKey? quickActionsKey;
+  final GlobalKey? searchBarKey;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -84,6 +93,20 @@ class _HomeScreenState extends State<HomeScreen> {
       child: FutureBuilder<_HomeData>(
         future: _future,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                ErrorState(
+                  title: l10n.t('error_generic'),
+                  subtitle: snapshot.error.toString(),
+                  icon: Icons.error_outline,
+                  retryLabel: l10n.t('retry'),
+                  onRetry: _refresh,
+                ),
+              ],
+            );
+          }
           if (!snapshot.hasData) {
             return ListView(
               padding: const EdgeInsets.all(24),
@@ -118,63 +141,69 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.search),
-                            hintText: l10n.t('search_hint'),
+                  child: KeyedSubtree(
+                    key: widget.searchBarKey,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.search),
+                              hintText: l10n.t('search_hint'),
+                            ),
+                            onTap: () => AppRouter.instance.push('/search'),
                           ),
-                          onTap: () => AppRouter.instance.push('/search'),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: () => AppRouter.instance.push('/explore'),
-                        icon: const Icon(Icons.map_outlined),
-                        tooltip: l10n.t('explore_map'),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () => AppRouter.instance.push('/catalog'),
-                        icon: const Icon(Icons.tune),
-                        tooltip: l10n.t('filters'),
-                      ),
-                    ],
+                        const SizedBox(width: 12),
+                        IconButton(
+                          onPressed: () => AppRouter.instance.push('/explore'),
+                          icon: const Icon(Icons.map_outlined),
+                          tooltip: l10n.t('explore_map'),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => AppRouter.instance.push('/catalog'),
+                          icon: const Icon(Icons.tune),
+                          tooltip: l10n.t('filters'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      QuickActionButton(
-                        icon: IconlyLight.calendar,
-                        label: l10n.t('book_field'),
-                        onTap: () => AppRouter.instance.push('/catalog?type=venue'),
-                      ),
-                      QuickActionButton(
-                        icon: IconlyLight.activity,
-                        label: l10n.t('join_challenge'),
-                        onTap: () => AppRouter.instance.push('/catalog?type=challenge'),
-                      ),
-                      QuickActionButton(
-                        icon: IconlyLight.dumbbell,
-                        label: l10n.t('street_workout'),
-                        onTap: () => AppRouter.instance.push('/catalog?type=street_workout'),
-                      ),
-                      QuickActionButton(
-                        icon: IconlyLight.location,
-                        label: l10n.t('walk_routes'),
-                        onTap: () => AppRouter.instance.push('/catalog?type=walk_route'),
-                      ),
-                    ],
+                  child: KeyedSubtree(
+                    key: widget.quickActionsKey,
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        QuickActionButton(
+                          icon: IconlyLight.calendar,
+                          label: l10n.t('book_field'),
+                          onTap: () => AppRouter.instance.push('/catalog?type=venue'),
+                        ),
+                        QuickActionButton(
+                          icon: IconlyLight.activity,
+                          label: l10n.t('join_challenge'),
+                          onTap: () => AppRouter.instance.push('/catalog?type=challenge'),
+                        ),
+                        QuickActionButton(
+                          icon: IconlyLight.dumbbell,
+                          label: l10n.t('street_workout'),
+                          onTap: () => AppRouter.instance.push('/catalog?type=street_workout'),
+                        ),
+                        QuickActionButton(
+                          icon: IconlyLight.location,
+                          label: l10n.t('walk_routes'),
+                          onTap: () => AppRouter.instance.push('/catalog?type=walk_route'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -239,8 +268,11 @@ class _HomeScreenState extends State<HomeScreen> {
               if (topVenues.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(l10n.t('no_results')),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    child: EmptyState(
+                      title: l10n.t('no_results'),
+                      icon: Icons.search_off,
+                    ),
                   ),
                 ),
               SliverPadding(

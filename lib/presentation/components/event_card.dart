@@ -35,6 +35,7 @@ class EventCard extends StatelessWidget {
                     width: 64,
                     height: 64,
                     fit: BoxFit.cover,
+                    semanticLabel: item.title,
                   ),
                 )
               : Image.network(
@@ -42,6 +43,7 @@ class EventCard extends StatelessWidget {
                   width: 64,
                   height: 64,
                   fit: BoxFit.cover,
+                  semanticLabel: item.title,
                 ),
         ),
         title: Text(item.title, style: theme.textTheme.titleMedium),

@@ -88,6 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Image.network(
                     slide.imageUrl,
                     fit: BoxFit.cover,
+                    semanticLabel: title,
                   ),
                   Container(
                     decoration: const BoxDecoration(

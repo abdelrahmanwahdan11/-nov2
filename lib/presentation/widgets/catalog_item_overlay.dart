@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../domain/entities/catalog_item.dart';
 import '../../core/localization/app_localizations.dart';
@@ -182,7 +183,11 @@ class _FrontCard extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 3 / 4,
-            child: Image.network(item.imageUrl, fit: BoxFit.cover),
+            child: Image.network(
+              item.imageUrl,
+              fit: BoxFit.cover,
+              semanticLabel: item.title,
+            ),
           ),
           Container(
             decoration: const BoxDecoration(
@@ -254,6 +259,43 @@ class _BackCard extends StatelessWidget {
   final VoidCallback? onPrimaryAction;
   final VoidCallback close;
 
+  void _share(BuildContext context) {
+    final link = 'saha://item/${item.id}';
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.t('share')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.t('deeplink_label')),
+              const SizedBox(height: 12),
+              SelectableText(link, style: Theme.of(dialogContext).textTheme.bodyLarge),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.t('cancel')),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: link));
+                Navigator.of(dialogContext).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.t('link_copied'))),
+                );
+              },
+              child: Text(l10n.t('copy_link')),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _primaryCtaLabel() {
     switch (item.type) {
       case CatalogType.venue:
@@ -319,7 +361,13 @@ class _BackCard extends StatelessWidget {
             child: Text(_primaryCtaLabel()),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(
+          OutlinedButton.icon(
+            onPressed: () => _share(context),
+            icon: const Icon(Icons.share_outlined),
+            label: Text(l10n.t('share')),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
             onPressed: close,
             child: Text(l10n.t('close')),
           ),

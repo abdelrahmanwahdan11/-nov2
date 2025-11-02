@@ -37,6 +37,7 @@ class HeroCarouselCard extends StatelessWidget {
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
+                  semanticLabel: title,
                   loadingBuilder: (context, child, progress) {
                     if (progress == null) return child;
                     return Container(color: Colors.black12);

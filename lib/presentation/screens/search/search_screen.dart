@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -7,6 +9,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../widgets/catalog_item_overlay.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -27,11 +30,14 @@ class _SearchScreenState extends State<SearchScreen> {
   int _page = 0;
   static const _pageSize = 10;
   String _query = '';
+  CatalogSortOption _sortOption = CatalogSortOption.popular;
+  Timer? _debounce;
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -43,12 +49,50 @@ class _SearchScreenState extends State<SearchScreen> {
     _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _onSearch(String query) async {
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    final trimmed = value.trim();
     setState(() {
-      _query = query;
-      _initial = false;
+      _query = trimmed;
+      _initial = trimmed.isEmpty;
     });
+    if (trimmed.isEmpty) {
+      setState(() {
+        _results.clear();
+        _hasMore = false;
+        _page = 0;
+      });
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      _fetch(reset: true);
+    });
+  }
+
+  Future<void> _onSearchSubmitted(String query) async {
+    _debounce?.cancel();
+    setState(() {
+      _query = query.trim();
+      _initial = _query.isEmpty;
+    });
+    if (_query.isEmpty) {
+      setState(() {
+        _results.clear();
+        _hasMore = false;
+        _page = 0;
+      });
+      return;
+    }
     await _fetch(reset: true);
+  }
+
+  void _onSortSelected(CatalogSortOption option) {
+    if (_sortOption == option) return;
+    setState(() => _sortOption = option);
+    if (_query.isNotEmpty || _results.isNotEmpty) {
+      _fetch(reset: true);
+    }
   }
 
   Future<void> _fetch({bool reset = false}) async {
@@ -63,6 +107,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _query,
       page: _page,
       pageSize: _pageSize,
+      sort: _sortOption,
     );
     setState(() {
       _results.addAll(result.items);
@@ -120,29 +165,62 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: l10n.t('search_hint'),
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _controller.clear();
-                          setState(() {
-                            _results.clear();
-                            _query = '';
-                            _page = 0;
-                            _hasMore = false;
-                            _initial = true;
-                          });
-                        },
-                      )
-                    : null,
-              ),
-              textInputAction: TextInputAction.search,
-              onSubmitted: _onSearch,
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: l10n.t('search_hint'),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _controller.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _controller.clear();
+                                _debounce?.cancel();
+                                setState(() {
+                                  _results.clear();
+                                  _query = '';
+                                  _page = 0;
+                                  _hasMore = false;
+                                  _initial = true;
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: _onSearchSubmitted,
+                    onChanged: _onQueryChanged,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                PopupMenuButton<CatalogSortOption>(
+                  tooltip: l10n.t('sort_by'),
+                  onSelected: _onSortSelected,
+                  initialValue: _sortOption,
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: CatalogSortOption.popular,
+                      child: Text(l10n.t('sort_popular')),
+                    ),
+                    PopupMenuItem(
+                      value: CatalogSortOption.priceLowHigh,
+                      child: Text(l10n.t('sort_price_low_high')),
+                    ),
+                    PopupMenuItem(
+                      value: CatalogSortOption.nearest,
+                      child: Text(l10n.t('sort_nearest')),
+                    ),
+                    PopupMenuItem(
+                      value: CatalogSortOption.timeSoonest,
+                      child: Text(l10n.t('sort_time_soonest')),
+                    ),
+                  ],
+                  icon: const Icon(Icons.sort),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             if (_isSearching && _results.isEmpty) const LinearProgressIndicator(),
@@ -169,7 +247,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           SizedBox(
                             height: 220,
-                            child: Center(child: Text(l10n.t('no_results'))),
+                            child: EmptyState(
+                              title: l10n.t('no_results'),
+                              icon: Icons.search_off,
+                            ),
                           ),
                         ],
                       );
@@ -194,7 +275,13 @@ class _SearchScreenState extends State<SearchScreen> {
                               tag: 'catalog_${item.id}',
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(item.imageUrl, width: 56, height: 56, fit: BoxFit.cover),
+                                child: Image.network(
+                                  item.imageUrl,
+                                  width: 56,
+                                  height: 56,
+                                  fit: BoxFit.cover,
+                                  semanticLabel: item.title,
+                                ),
                               ),
                             ),
                             title: Text(item.title),

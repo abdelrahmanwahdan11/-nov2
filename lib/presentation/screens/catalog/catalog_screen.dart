@@ -8,6 +8,7 @@ import '../../../core/router/app_router.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../components/venue_card.dart';
 import '../../widgets/catalog_item_overlay.dart';
+import '../../widgets/empty_state.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
 class CatalogScreen extends StatefulWidget {
@@ -30,6 +31,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   bool _initialLoading = true;
   bool _hasMore = true;
   int _page = 0;
+  CatalogSortOption _sortOption = CatalogSortOption.popular;
 
   @override
   void initState() {
@@ -54,6 +56,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _fetch(reset: true);
   }
 
+  void _applySort(CatalogSortOption option) {
+    if (_sortOption == option) return;
+    setState(() => _sortOption = option);
+    _fetch(reset: true);
+  }
+
   Future<void> _fetch({bool reset = false}) async {
     if (_isLoading) return;
     setState(() {
@@ -74,6 +82,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       pageSize: _pageSize,
       type: _selectedType,
       level: _levelFilter,
+      sort: _sortOption,
     );
 
     setState(() {
@@ -128,6 +137,30 @@ class _CatalogScreenState extends State<CatalogScreen> {
       appBar: AppBar(
         title: Text(l10n.t('catalog')),
         actions: [
+          PopupMenuButton<CatalogSortOption>(
+            tooltip: l10n.t('sort_by'),
+            initialValue: _sortOption,
+            onSelected: _applySort,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: CatalogSortOption.popular,
+                child: Text(l10n.t('sort_popular')),
+              ),
+              PopupMenuItem(
+                value: CatalogSortOption.priceLowHigh,
+                child: Text(l10n.t('sort_price_low_high')),
+              ),
+              PopupMenuItem(
+                value: CatalogSortOption.nearest,
+                child: Text(l10n.t('sort_nearest')),
+              ),
+              PopupMenuItem(
+                value: CatalogSortOption.timeSoonest,
+                child: Text(l10n.t('sort_time_soonest')),
+              ),
+            ],
+            icon: const Icon(Icons.sort),
+          ),
           IconButton(
             onPressed: () => _applyFilters(type: null, level: null),
             icon: const Icon(Icons.refresh),
@@ -174,7 +207,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
             else if (_items.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: Text(l10n.t('no_results'))),
+                child: EmptyState(
+                  title: l10n.t('no_results'),
+                  icon: Icons.search_off,
+                ),
               )
             else
               SliverPadding(

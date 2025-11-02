@@ -18,6 +18,7 @@ class StoryViewerScreen extends StatelessWidget {
             child: Image.network(
               'https://images.unsplash.com/photo-1517836357463-d25dfeac3438',
               fit: BoxFit.cover,
+              semanticLabel: l10n.t('mock_story'),
             ),
           ),
           Positioned(

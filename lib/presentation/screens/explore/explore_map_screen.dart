@@ -150,7 +150,13 @@ class _ExploreMapScreenState extends State<ExploreMapScreen> {
                           tag: heroTag,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(item.imageUrl, width: 64, height: 64, fit: BoxFit.cover),
+                            child: Image.network(
+                              item.imageUrl,
+                              width: 64,
+                              height: 64,
+                              fit: BoxFit.cover,
+                              semanticLabel: item.title,
+                            ),
                           ),
                         ),
                         title: Text(item.title),
