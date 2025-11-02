@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../application/stores/app_store.dart';
+import '../../core/utils/app_motion.dart';
 import 'primary_button.dart';
 
 class CoachmarkStep {
@@ -62,7 +64,10 @@ class _CoachmarksOverlayState extends State<CoachmarksOverlay> {
     final render = _currentStep.targetKey.currentContext?.findRenderObject() as RenderBox?;
     final overlayBox = _overlayKey.currentContext?.findRenderObject() as RenderBox?;
     if (render == null || overlayBox == null) {
-      Future.delayed(const Duration(milliseconds: 120), _updateRect);
+      final delay = AppStore.instance.reducedMotionSignal.value
+          ? const Duration(milliseconds: 60)
+          : const Duration(milliseconds: 120);
+      Future.delayed(delay, _updateRect);
       return;
     }
     final targetGlobal = render.localToGlobal(Offset.zero);
@@ -100,7 +105,7 @@ class _CoachmarksOverlayState extends State<CoachmarksOverlay> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
+                  duration: AppMotion.duration(context, const Duration(milliseconds: 250)),
                   switchInCurve: Curves.easeOut,
                   switchOutCurve: Curves.easeIn,
                   child: Container(
@@ -170,9 +175,11 @@ class _HighlightFrameState extends State<_HighlightFrame>
   @override
   void initState() {
     super.initState();
+    final reduced = AppStore.instance.reducedMotionSignal.value;
+    final duration = reduced ? const Duration(milliseconds: 300) : const Duration(milliseconds: 600);
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: duration,
     )..repeat(reverse: true);
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -189,7 +196,7 @@ class _HighlightFrameState extends State<_HighlightFrame>
   Widget build(BuildContext context) {
     final rect = widget.rect;
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 240),
+      duration: AppMotion.duration(context, const Duration(milliseconds: 240)),
       curve: Curves.easeInOut,
       left: rect.left - 16,
       top: rect.top - 16,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/utils/app_motion.dart';
+
 class QuickActionButton extends StatelessWidget {
   const QuickActionButton({
     super.key,
@@ -16,8 +18,12 @@ class QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final duration = AppMotion.duration(context, const Duration(milliseconds: 350));
     return Animate(
-      effects: const [FadeEffect(duration: Duration(milliseconds: 350)), ScaleEffect(begin: Offset(0.95, 0.95), end: Offset(1, 1))],
+      effects: [
+        FadeEffect(duration: duration),
+        ScaleEffect(begin: const Offset(0.95, 0.95), end: const Offset(1, 1), duration: duration),
+      ],
       child: Material(
         color: theme.colorScheme.surface.withOpacity(0.4),
         borderRadius: BorderRadius.circular(22),

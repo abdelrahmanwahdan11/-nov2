@@ -4,6 +4,7 @@ import '../../../application/stores/app_store.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../widgets/primary_button.dart';
 
 enum AuthStage { welcome, signIn, signUp, forgotPassword }
@@ -157,7 +158,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 32),
                 Expanded(
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 450),
+                    duration: AppMotion.duration(context, const Duration(milliseconds: 450)),
                     switchInCurve: Curves.easeOut,
                     switchOutCurve: Curves.easeIn,
                     child: _buildContent(l10n, textTheme),

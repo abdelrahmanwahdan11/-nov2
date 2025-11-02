@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/utils/app_motion.dart';
+
 class HealthWidget extends StatelessWidget {
   const HealthWidget({
     super.key,
@@ -14,8 +16,12 @@ class HealthWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final duration = AppMotion.duration(context, const Duration(milliseconds: 400));
     return Animate(
-      effects: const [FadeEffect(duration: Duration(milliseconds: 400)), SlideEffect(begin: Offset(0, 0.15), end: Offset.zero)],
+      effects: [
+        FadeEffect(duration: duration),
+        SlideEffect(begin: const Offset(0, 0.15), end: Offset.zero, duration: duration),
+      ],
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),

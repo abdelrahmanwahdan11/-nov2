@@ -7,6 +7,7 @@ import '../../application/stores/app_store.dart';
 import '../../core/constants/app_gradients.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/signals/signal.dart';
+import '../../core/utils/app_motion.dart';
 import '../../domain/entities/catalog_item.dart';
 import 'primary_button.dart';
 
@@ -28,12 +29,17 @@ class CatalogItemOverlay extends StatefulWidget {
     required String heroTag,
     VoidCallback? onPrimaryAction,
   }) {
+    final reduced = AppStore.instance.reducedMotionSignal.value;
+    final forwardDuration =
+        reduced ? const Duration(milliseconds: 125) : const Duration(milliseconds: 250);
+    final reverseDuration =
+        reduced ? const Duration(milliseconds: 100) : const Duration(milliseconds: 200);
     return Navigator.of(context).push(PageRouteBuilder<void>(
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.black87.withOpacity(0.75),
-      transitionDuration: const Duration(milliseconds: 250),
-      reverseTransitionDuration: const Duration(milliseconds: 200),
+      transitionDuration: forwardDuration,
+      reverseTransitionDuration: reverseDuration,
       pageBuilder: (context, animation, secondaryAnimation) {
         return FadeTransition(
           opacity: animation,
@@ -189,7 +195,7 @@ class _CatalogItemOverlayState extends State<CatalogItemOverlay> {
                   child: Material(
                     color: Colors.transparent,
                   child: AnimatedScale(
-                    duration: const Duration(milliseconds: 250),
+                    duration: AppMotion.duration(context, const Duration(milliseconds: 250)),
                     scale: 1.0,
                     child: GestureDetector(
                       onTap: _toggleCard,
@@ -202,7 +208,10 @@ class _CatalogItemOverlayState extends State<CatalogItemOverlay> {
                           builder: (context, savedItems, _) {
                             final isSaved = savedItems.contains(widget.item.id);
                             return AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 450),
+                              duration: AppMotion.duration(
+                                context,
+                                const Duration(milliseconds: 450),
+                              ),
                               switchInCurve: Curves.easeOutBack,
                               switchOutCurve: Curves.easeInBack,
                               transitionBuilder: _transitionBuilder,
@@ -332,7 +341,7 @@ class _FrontCard extends StatelessWidget {
             top: 16,
             right: 16,
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
+              duration: AppMotion.duration(context, const Duration(milliseconds: 200)),
               child: Container(
                 key: ValueKey(isSaved),
                 padding: const EdgeInsets.all(8),

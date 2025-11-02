@@ -29,6 +29,17 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
         const SizedBox(height: 12),
+        SignalBuilder<bool>(
+          signal: store.reducedMotionSignal,
+          builder: (context, reducedMotion, _) {
+            return SwitchListTile(
+              value: reducedMotion,
+              title: Text(l10n.t('reduced_motion')),
+              onChanged: (value) => store.setReducedMotion(value),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         SignalBuilder<Locale>(
           signal: store.localeSignal,
           builder: (context, locale, _) {

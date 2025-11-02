@@ -6,6 +6,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/router/app_router.dart';
 import 'core/signals/signal.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/app_motion.dart';
 
 class SahaApp extends StatefulWidget {
   const SahaApp({super.key});
@@ -75,7 +76,23 @@ class _SahaAppState extends State<SahaApp> {
                         : TextDirection.ltr;
                     return Directionality(
                       textDirection: textDirection,
-                      child: child ?? const SizedBox.shrink(),
+                      child: SignalBuilder<bool>(
+                        signal: store.reducedMotionSignal,
+                        builder: (context, reducedMotion, __) {
+                          Widget content = child ?? const SizedBox.shrink();
+                          final mediaQuery = MediaQuery.maybeOf(context);
+                          if (mediaQuery != null) {
+                            content = MediaQuery(
+                              data: mediaQuery.copyWith(disableAnimations: reducedMotion),
+                              child: content,
+                            );
+                          }
+                          return ReducedMotionScope(
+                            reducedMotion: reducedMotion,
+                            child: content,
+                          );
+                        },
+                      ),
                     );
                   },
                 );

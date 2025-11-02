@@ -7,6 +7,7 @@ import '../../../application/stores/app_store.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/signals/signal.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../widgets/primary_button.dart';
 
 class PlanScreen extends StatefulWidget {
@@ -132,8 +133,12 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final duration = AppMotion.duration(context, const Duration(milliseconds: 350));
     return Animate(
-      effects: const [FadeEffect(duration: Duration(milliseconds: 350)), SlideEffect(begin: Offset(0, 0.1), end: Offset.zero)],
+      effects: [
+        FadeEffect(duration: duration),
+        SlideEffect(begin: const Offset(0, 0.1), end: Offset.zero, duration: duration),
+      ],
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

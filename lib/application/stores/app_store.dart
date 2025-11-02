@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class AppStore {
   final Signal<Set<String>> savedItemsSignal = Signal(<String>{});
   final Signal<Map<String, dynamic>> planMetricsSignal = Signal(<String, dynamic>{});
   final Signal<bool> coachmarksSeenSignal = Signal(false);
+  final Signal<bool> reducedMotionSignal = Signal(false);
 
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -55,6 +57,9 @@ class AppStore {
 
     final seenCoachmarks = _prefs!.getBool('seen_coachmarks') ?? false;
     coachmarksSeenSignal.emit(seenCoachmarks);
+
+    final reducedMotion = _prefs!.getBool('reduced_motion') ?? false;
+    reducedMotionSignal.emit(reducedMotion);
   }
 
   Future<void> setLocale(Locale locale) async {
@@ -77,6 +82,7 @@ class AppStore {
     await setLocale(const Locale('ar'));
     await setDarkMode(true);
     await setPrimaryColor(AppColors.primary);
+    await setReducedMotion(false);
   }
 
   Future<void> markOnboardingDone() async {
@@ -112,5 +118,72 @@ class AppStore {
   Future<void> setCoachmarksSeen(bool seen) async {
     coachmarksSeenSignal.emit(seen);
     await _prefs?.setBool('seen_coachmarks', seen);
+  }
+
+  Future<void> setReducedMotion(bool value) async {
+    reducedMotionSignal.emit(value);
+    await _prefs?.setBool('reduced_motion', value);
+  }
+
+  String? getSortPreference(String screen) {
+    final map = _readMap('last_sort_option');
+    final value = map[screen];
+    return value is String ? value : null;
+  }
+
+  Future<void> saveSortPreference(String screen, String sort) async {
+    final map = _readMap('last_sort_option');
+    map[screen] = sort;
+    await _prefs?.setString('last_sort_option', jsonEncode(map));
+  }
+
+  Map<String, dynamic> getFilterPreference(String screen) {
+    final map = _readMap('last_filters');
+    final value = map[screen];
+    if (value is Map) {
+      return Map<String, dynamic>.from(value as Map);
+    }
+    if (value is String) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+      } catch (_) {
+        return <String, dynamic>{};
+      }
+    }
+    return <String, dynamic>{};
+  }
+
+  Future<void> saveFilterPreference(String screen, Map<String, dynamic> filters) async {
+    final sanitized = Map<String, dynamic>.from(filters)
+      ..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
+    final map = _readMap('last_filters');
+    if (sanitized.isEmpty) {
+      map.remove(screen);
+    } else {
+      map[screen] = sanitized;
+    }
+    await _prefs?.setString('last_filters', jsonEncode(map));
+  }
+
+  Map<String, dynamic> _readMap(String key) {
+    if (_prefs == null) {
+      return <String, dynamic>{};
+    }
+    final raw = _prefs!.getString(key);
+    if (raw == null || raw.isEmpty) {
+      return <String, dynamic>{};
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return Map<String, dynamic>.from(decoded);
+      }
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+    return <String, dynamic>{};
   }
 }

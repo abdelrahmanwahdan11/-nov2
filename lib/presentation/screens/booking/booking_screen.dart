@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../application/services/service_locator.dart';
 import '../../../core/constants/app_gradients.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_state.dart';
@@ -323,7 +324,9 @@ class _AvailabilityGrid extends StatelessWidget {
       children: slots
           .map(
             (slot) => Animate(
-              effects: const [FadeEffect(duration: Duration(milliseconds: 200))],
+              effects: [
+                FadeEffect(duration: AppMotion.duration(context, const Duration(milliseconds: 200))),
+              ],
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 decoration: BoxDecoration(

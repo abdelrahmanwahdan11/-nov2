@@ -3,8 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../application/services/catalog_service.dart';
 import '../../../application/services/service_locator.dart';
+import '../../../application/stores/app_store.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../components/venue_card.dart';
 import '../../widgets/catalog_item_overlay.dart';
@@ -26,6 +28,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   CatalogType? _selectedType;
   String? _levelFilter;
   late final CatalogService _service;
+  late final AppStore _store;
   final ScrollController _scrollController = ScrollController();
   final List<CatalogItem> _items = [];
   bool _isLoading = false;
@@ -48,9 +51,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.initState();
     _selectedType = widget.initialType;
     _service = ServiceLocator.instance.catalogService;
+    _store = AppStore.instance;
     _scrollController.addListener(_onScroll);
     _loadFilterOptions();
-    _fetch(reset: true);
+    _restorePreferences();
   }
 
   @override
@@ -82,36 +86,42 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _selectedType = type;
       _levelFilter = level;
     });
+    _persistFilters();
     _fetch(reset: true);
   }
 
   void _applySort(CatalogSortOption option) {
     if (_sortOption == option) return;
     setState(() => _sortOption = option);
+    _store.saveSortPreference('catalog', option.name);
     _fetch(reset: true);
   }
 
   void _setSport(String? sport) {
     if (_sportFilter == sport) return;
     setState(() => _sportFilter = sport);
+    _persistFilters();
     _fetch(reset: true);
   }
 
   void _setDuration(String? range) {
     if (_durationFilter == range) return;
     setState(() => _durationFilter = range);
+    _persistFilters();
     _fetch(reset: true);
   }
 
   void _setKcal(String? range) {
     if (_kcalFilter == range) return;
     setState(() => _kcalFilter = range);
+    _persistFilters();
     _fetch(reset: true);
   }
 
   void _setPrice(String? range) {
     if (_priceFilter == range) return;
     setState(() => _priceFilter = range);
+    _persistFilters();
     _fetch(reset: true);
   }
 
@@ -124,7 +134,86 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _kcalFilter = null;
       _priceFilter = null;
     });
+    _persistFilters();
     _fetch(reset: true);
+  }
+
+  Future<void> _restorePreferences() async {
+    final savedSort = _store.getSortPreference('catalog');
+    final savedFilters = _store.getFilterPreference('catalog');
+
+    setState(() {
+      if (savedSort != null) {
+        final parsed = _sortFromString(savedSort);
+        if (parsed != null) {
+          _sortOption = parsed;
+        }
+      }
+
+      if (widget.initialType == null) {
+        final typeRaw = savedFilters['type'];
+        if (typeRaw is String) {
+          final type = _catalogTypeFromString(typeRaw);
+          if (type != null) {
+            _selectedType = type;
+          }
+        }
+      }
+
+      final level = savedFilters['level'];
+      if (level is String) {
+        _levelFilter = level;
+      }
+      final sport = savedFilters['sport'];
+      if (sport is String) {
+        _sportFilter = sport;
+      }
+      final duration = savedFilters['duration'];
+      if (duration is String) {
+        _durationFilter = duration;
+      }
+      final kcal = savedFilters['kcal'];
+      if (kcal is String) {
+        _kcalFilter = kcal;
+      }
+      final price = savedFilters['price'];
+      if (price is String) {
+        _priceFilter = price;
+      }
+    });
+
+    _persistFilters();
+    await _fetch(reset: true);
+  }
+
+  void _persistFilters() {
+    final filters = <String, dynamic>{
+      'type': _selectedType?.name,
+      'level': _levelFilter,
+      'sport': _sportFilter,
+      'duration': _durationFilter,
+      'kcal': _kcalFilter,
+      'price': _priceFilter,
+    };
+    _store.saveFilterPreference('catalog', filters);
+  }
+
+  CatalogSortOption? _sortFromString(String raw) {
+    for (final option in CatalogSortOption.values) {
+      if (option.name == raw) {
+        return option;
+      }
+    }
+    return null;
+  }
+
+  CatalogType? _catalogTypeFromString(String raw) {
+    for (final type in CatalogType.values) {
+      if (type.name == raw) {
+        return type;
+      }
+    }
+    return null;
   }
 
   Future<void> _fetch({bool reset = false}) async {
@@ -298,8 +387,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           }
                           final item = _items[index];
                           final heroTag = 'catalog_${item.id}';
+                          final duration =
+                              AppMotion.duration(context, const Duration(milliseconds: 220));
                           return Animate(
-                            effects: const [FadeEffect(duration: Duration(milliseconds: 220))],
+                            effects: [
+                              FadeEffect(duration: duration),
+                            ],
                             child: VenueCard(
                               item: item,
                               heroTag: heroTag,

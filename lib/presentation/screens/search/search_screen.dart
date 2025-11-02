@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../application/services/catalog_service.dart';
 import '../../../application/services/service_locator.dart';
+import '../../../application/stores/app_store.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../widgets/catalog_item_overlay.dart';
 import '../../widgets/catalog_sort_menu.dart';
@@ -25,6 +27,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<CatalogItem> _results = [];
   late final CatalogService _service;
+  late final AppStore _store;
   bool _isSearching = false;
   bool _hasMore = false;
   bool _initial = true;
@@ -46,8 +49,10 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _service = ServiceLocator.instance.catalogService;
+    _store = AppStore.instance;
     _controller.addListener(() => setState(() {}));
     _scrollController.addListener(_onScroll);
+    _restorePreferences();
   }
 
   void _onQueryChanged(String value) {
@@ -57,6 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _query = trimmed;
       _initial = trimmed.isEmpty;
     });
+    _persistQuery();
     if (trimmed.isEmpty) {
       setState(() {
         _results.clear();
@@ -77,6 +83,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _query = query.trim();
       _initial = _query.isEmpty;
     });
+    _persistQuery();
     if (_query.isEmpty) {
       setState(() {
         _results.clear();
@@ -91,6 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onSortSelected(CatalogSortOption option) {
     if (_sortOption == option) return;
     setState(() => _sortOption = option);
+    _store.saveSortPreference('search', option.name);
     if (_query.isNotEmpty || _results.isNotEmpty) {
       _fetch(reset: true);
     }
@@ -190,6 +198,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             _hasMore = false;
                             _initial = true;
                           });
+                          _persistQuery();
                         },
                       )
                     : null,
@@ -242,8 +251,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         }
                         final item = _results[index];
                         final subtitle = item.city ?? item.metric ?? '';
+                        final duration =
+                            AppMotion.duration(context, const Duration(milliseconds: 250));
                         return Animate(
-                          effects: const [FadeEffect(duration: Duration(milliseconds: 250))],
+                          effects: [FadeEffect(duration: duration)],
                           child: ListTile(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             tileColor: theme.cardColor,
@@ -276,5 +287,42 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _restorePreferences() async {
+    final savedSort = _store.getSortPreference('search');
+    final savedFilters = _store.getFilterPreference('search');
+    final savedQuery = (savedFilters['query'] as String?)?.trim();
+
+    setState(() {
+      if (savedSort != null) {
+        final parsed = _sortFromString(savedSort);
+        if (parsed != null) {
+          _sortOption = parsed;
+        }
+      }
+      if (savedQuery != null) {
+        _controller.text = savedQuery;
+        _query = savedQuery;
+        _initial = savedQuery.isEmpty;
+      }
+    });
+
+    if (savedQuery != null && savedQuery.isNotEmpty) {
+      await _fetch(reset: true);
+    }
+  }
+
+  void _persistQuery() {
+    _store.saveFilterPreference('search', {'query': _query});
+  }
+
+  CatalogSortOption? _sortFromString(String raw) {
+    for (final option in CatalogSortOption.values) {
+      if (option.name == raw) {
+        return option;
+      }
+    }
+    return null;
   }
 }

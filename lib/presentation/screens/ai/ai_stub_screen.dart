@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../widgets/primary_button.dart';
 
 class AiStubScreen extends StatelessWidget {
@@ -15,7 +16,17 @@ class AiStubScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.t('ai_insight'))),
       body: Center(
         child: Animate(
-          effects: const [FadeEffect(duration: Duration(milliseconds: 300)), ScaleEffect(begin: Offset(0.9, 0.9), end: Offset(1, 1))],
+          effects: () {
+            final duration = AppMotion.duration(context, const Duration(milliseconds: 300));
+            return [
+              FadeEffect(duration: duration),
+              ScaleEffect(
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1, 1),
+                duration: duration,
+              ),
+            ];
+          }(),
           child: Container(
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/app_motion.dart';
 import '../../widgets/empty_state.dart';
 
 class InboxScreen extends StatefulWidget {
@@ -45,8 +46,9 @@ class _InboxScreenState extends State<InboxScreen> {
         padding: const EdgeInsets.all(24),
         itemBuilder: (context, index) {
           final item = _notifications[index];
+          final duration = AppMotion.duration(context, const Duration(milliseconds: 300));
           return Animate(
-            effects: const [FadeEffect(duration: Duration(milliseconds: 300))],
+            effects: [FadeEffect(duration: duration)],
             child: ListTile(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               tileColor: theme.cardColor,
