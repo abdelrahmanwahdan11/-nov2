@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../widgets/primary_button.dart';
 
 class AiStubScreen extends StatelessWidget {
   const AiStubScreen({super.key});
@@ -35,9 +36,10 @@ class AiStubScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                PrimaryButton(
+                  label: l10n.t('close'),
                   onPressed: () => Navigator.of(context).maybePop(),
-                  child: Text(l10n.t('close')),
+                  expand: false,
                 ),
               ],
             ),

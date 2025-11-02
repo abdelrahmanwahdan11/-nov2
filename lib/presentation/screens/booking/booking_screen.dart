@@ -6,6 +6,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_state.dart';
+import '../../widgets/primary_button.dart';
+import '../../../core/constants/app_gradients.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key, required this.venueId});
@@ -76,11 +78,40 @@ class _BookingScreenState extends State<BookingScreen> {
                 borderRadius: BorderRadius.circular(18),
                 child: Hero(
                   tag: 'hero-card-${venue.id}',
-                  child: Image.network(
-                    venue.imageUrl,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    semanticLabel: venue.title,
+                  child: Stack(
+                    alignment: Alignment.bottomLeft,
+                    children: [
+                      Image.network(
+                        venue.imageUrl,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        semanticLabel: venue.title,
+                      ),
+                      Container(
+                        height: 200,
+                        decoration: const BoxDecoration(gradient: AppGradients.imageOverlay),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Chip(
+                              label: Text(venue.level != null ? l10n.t(venue.level!) : l10n.t('all')),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              venue.title,
+                              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -97,9 +128,9 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 8),
               Text('• إلغاء قبل 6 ساعات\n• الدفع عند الوصول'),
               const SizedBox(height: 24),
-              ElevatedButton(
+              PrimaryButton(
+                label: l10n.t('book_now'),
                 onPressed: () {},
-                child: Text(l10n.t('book_now')),
               ),
             ],
           ),

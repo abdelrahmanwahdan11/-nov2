@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../../domain/entities/catalog_item.dart';
 import '../../core/localization/app_localizations.dart';
+import '../../core/constants/app_gradients.dart';
+import 'primary_button.dart';
 
 class CatalogItemOverlay extends StatefulWidget {
   const CatalogItemOverlay({
@@ -176,6 +178,18 @@ class _FrontCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final badges = <Widget>[];
+    if (item.level != null) {
+      badges.add(_Badge(icon: Icons.military_tech, label: l10n.t(item.level!)));
+    }
+    final price = item.pricePerHour ?? item.fee;
+    if (price != null) {
+      badges.add(_Badge(icon: Icons.attach_money, label: '${price.toStringAsFixed(0)} ₪'));
+    }
+    if (item.time != null && item.time!.isNotEmpty) {
+      badges.add(_Badge(icon: Icons.access_time, label: item.time!));
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: Stack(
@@ -189,26 +203,20 @@ class _FrontCard extends StatelessWidget {
               semanticLabel: item.title,
             ),
           ),
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black87],
-              ),
-            ),
-          ),
+          Container(decoration: const BoxDecoration(gradient: AppGradients.imageOverlay)),
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Chip(
-                  label: Text(item.level != null ? l10n.t(item.level!) : l10n.t('all')),
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-                ),
-                const SizedBox(height: 12),
+                if (badges.isNotEmpty)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: badges,
+                  ),
+                if (badges.isNotEmpty) const SizedBox(height: 12),
                 Text(
                   item.title,
                   style: theme.textTheme.displayLarge?.copyWith(color: Colors.white),
@@ -280,7 +288,8 @@ class _BackCard extends StatelessWidget {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(l10n.t('cancel')),
             ),
-            FilledButton(
+            PrimaryButton(
+              label: l10n.t('copy_link'),
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: link));
                 Navigator.of(dialogContext).pop();
@@ -288,7 +297,7 @@ class _BackCard extends StatelessWidget {
                   SnackBar(content: Text(l10n.t('link_copied'))),
                 );
               },
-              child: Text(l10n.t('copy_link')),
+              expand: false,
             ),
           ],
         );
@@ -311,10 +320,19 @@ class _BackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = l10n.languageCode == 'ar';
+    final description = isArabic
+        ? 'تجربة ${item.sport ?? 'نشاط'} تجريبية تعرض كيف سيبدو المحتوى الحقيقي داخل البطاقة المقلوبة.'
+        : 'A demo ${item.sport ?? 'activity'} preview that illustrates how live content will appear on the flipped card.';
+    final policy = isArabic
+        ? 'محاكاة: الدفع، الانضمام، والسداد تجريبي — نوصي بالوصول قبل 10 دقائق والاستعداد لخيارات الدفع المشترك.'
+        : 'Mocked flow: booking, join, and payments are simulated — arrive 10 minutes early and be ready for split payment.';
+
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardColor.withOpacity(0.98),
+        color: theme.cardColor.withOpacity(0.95),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -346,19 +364,28 @@ class _BackCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          Text(
-            item.city ?? '',
-            style: theme.textTheme.bodyLarge,
-          ),
+          if (item.city != null)
+            Text(
+              item.city!,
+              style: theme.textTheme.bodyLarge,
+            ),
           if (item.sport != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text('${l10n.t('sport_type')}: ${item.sport}'),
             ),
+          const SizedBox(height: 16),
+          Text(description, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 16),
+          Divider(color: Colors.white.withOpacity(0.08)),
+          const SizedBox(height: 12),
+          Text(l10n.t('policies'), style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(policy, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 24),
-          FilledButton(
+          PrimaryButton(
+            label: _primaryCtaLabel(),
             onPressed: onPrimaryAction,
-            child: Text(_primaryCtaLabel()),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -371,6 +398,34 @@ class _BackCard extends StatelessWidget {
             onPressed: close,
             child: Text(l10n.t('close')),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(color: Colors.white)),
         ],
       ),
     );

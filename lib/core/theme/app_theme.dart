@@ -22,6 +22,7 @@ class AppTheme {
     final textColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
 
     final textTheme = _textTheme(base.textTheme, textColor);
+    final borderRadius = BorderRadius.circular(AppDimensions.cardRadius);
 
     return base.copyWith(
       useMaterial3: true,
@@ -47,8 +48,9 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.black,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           minimumSize: const Size.fromHeight(52),
           textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           shape: RoundedRectangleBorder(
@@ -69,7 +71,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardColor.withOpacity(isDark ? 0.4 : 0.8),
+        fillColor: cardColor.withOpacity(isDark ? 0.45 : 0.85),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
           borderSide: BorderSide.none,
@@ -79,20 +81,20 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       ),
       chipTheme: base.chipTheme.copyWith(
-        backgroundColor: cardColor,
-        selectedColor: primaryColor.withOpacity(0.2),
+        backgroundColor: cardColor.withOpacity(isDark ? 0.45 : 0.85),
+        selectedColor: primaryColor.withOpacity(0.25),
         labelStyle: textTheme.bodyMedium,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
+          borderRadius: borderRadius,
         ),
       ),
       cardTheme: CardTheme(
-        color: cardColor,
+        color: cardColor.withOpacity(isDark ? 0.58 : 0.9),
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        shadowColor: Colors.black.withOpacity(0.25),
+        surfaceTintColor: Colors.white.withOpacity(isDark ? 0.08 : 0.04),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: isDark ? AppColors.darkCard : Colors.white,
@@ -101,17 +103,49 @@ class AppTheme {
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
       ),
+      dialogTheme: DialogTheme(
+        backgroundColor: cardColor.withOpacity(isDark ? 0.9 : 0.95),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      ),
+      dividerTheme: DividerThemeData(
+        color: Colors.white.withOpacity(isDark ? 0.12 : 0.08),
+      ),
+      listTileTheme: ListTileThemeData(
+        tileColor: cardColor.withOpacity(isDark ? 0.6 : 0.92),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      ),
     );
   }
 
   TextTheme _textTheme(TextTheme base, Color textColor) {
+    final interFamily = GoogleFonts.inter().fontFamily;
+    final applyFallback = (TextStyle style) => style.copyWith(
+          fontFamilyFallback: interFamily != null ? [interFamily] : null,
+          color: textColor,
+        );
+
     final tajawal = GoogleFonts.tajawalTextTheme(base).copyWith(
-      displayLarge: GoogleFonts.tajawal(fontWeight: FontWeight.w800, fontSize: 34, color: textColor),
-      titleLarge: GoogleFonts.tajawal(fontWeight: FontWeight.w700, fontSize: 22, color: textColor),
-      titleMedium: GoogleFonts.tajawal(fontWeight: FontWeight.w600, fontSize: 18, color: textColor),
-      bodyLarge: GoogleFonts.tajawal(fontWeight: FontWeight.w500, fontSize: 16, color: textColor),
-      bodyMedium: GoogleFonts.tajawal(fontWeight: FontWeight.w400, fontSize: 14, color: textColor),
-      bodySmall: GoogleFonts.tajawal(fontWeight: FontWeight.w300, fontSize: 12, color: textColor.withOpacity(0.8)),
+      displayLarge: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w800, fontSize: 34),
+      ),
+      titleLarge: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w700, fontSize: 22),
+      ),
+      titleMedium: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w600, fontSize: 18),
+      ),
+      bodyLarge: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w500, fontSize: 16),
+      ),
+      bodyMedium: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w400, fontSize: 14),
+      ),
+      bodySmall: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w300, fontSize: 12).copyWith(color: textColor.withOpacity(0.8)),
+      ),
+      labelLarge: applyFallback(
+        GoogleFonts.tajawal(fontWeight: FontWeight.w700, fontSize: 16),
+      ),
     );
 
     return tajawal.apply(displayColor: textColor, bodyColor: textColor);

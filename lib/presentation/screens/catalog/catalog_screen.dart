@@ -189,20 +189,25 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ),
             ),
             if (_initialLoading)
-              SliverPadding(
-                padding: const EdgeInsets.all(24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    childAspectRatio: 0.74,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => const ShimmerPlaceholder(),
-                    childCount: 6,
-                  ),
-                ),
+              SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final layout = _gridLayoutForWidth(constraints.crossAxisExtent);
+                  return SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: layout.padding, vertical: 24),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 320,
+                        childAspectRatio: layout.cardRatio,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => const ShimmerPlaceholder(),
+                        childCount: 6,
+                      ),
+                    ),
+                  );
+                },
               )
             else if (_items.isEmpty)
               SliverFillRemaining(
@@ -213,34 +218,39 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 ),
               )
             else
-              SliverPadding(
-                padding: const EdgeInsets.all(24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    childAspectRatio: 0.74,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index >= _items.length) {
-                        return const ShimmerPlaceholder();
-                      }
-                      final item = _items[index];
-                      final heroTag = 'catalog_${item.id}';
-                      return Animate(
-                        effects: const [FadeEffect(duration: Duration(milliseconds: 220))],
-                        child: VenueCard(
-                          item: item,
-                          heroTag: heroTag,
-                          onTap: () => _openItem(item),
-                        ),
-                      );
-                    },
-                    childCount: _items.length + (_isLoading && _hasMore ? 2 : 0),
-                  ),
-                ),
+              SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final layout = _gridLayoutForWidth(constraints.crossAxisExtent);
+                  return SliverPadding(
+                    padding: EdgeInsets.symmetric(horizontal: layout.padding, vertical: 24),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 320,
+                        childAspectRatio: layout.cardRatio,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index >= _items.length) {
+                            return const ShimmerPlaceholder();
+                          }
+                          final item = _items[index];
+                          final heroTag = 'catalog_${item.id}';
+                          return Animate(
+                            effects: const [FadeEffect(duration: Duration(milliseconds: 220))],
+                            child: VenueCard(
+                              item: item,
+                              heroTag: heroTag,
+                              onTap: () => _openItem(item),
+                            ),
+                          );
+                        },
+                        childCount: _items.length + (_isLoading && _hasMore ? 2 : 0),
+                      ),
+                    ),
+                  );
+                },
               ),
             SliverToBoxAdapter(
               child: Padding(
@@ -257,6 +267,23 @@ class _CatalogScreenState extends State<CatalogScreen> {
       ),
     );
   }
+
+  _GridLayout _gridLayoutForWidth(double width) {
+    if (width >= 900) {
+      return const _GridLayout(padding: 24, cardRatio: 0.85);
+    }
+    if (width >= 600) {
+      return const _GridLayout(padding: 20, cardRatio: 0.80);
+    }
+    return const _GridLayout(padding: 16, cardRatio: 0.74);
+  }
+}
+
+class _GridLayout {
+  const _GridLayout({required this.padding, required this.cardRatio});
+
+  final double padding;
+  final double cardRatio;
 }
 
 class _FiltersBar extends StatelessWidget {

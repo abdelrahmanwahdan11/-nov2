@@ -4,6 +4,7 @@ import '../../../application/stores/app_store.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../widgets/primary_button.dart';
 
 enum AuthStage { welcome, signIn, signUp, forgotPassword }
 
@@ -103,12 +104,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
   String _strengthLabel(SahaLocalizations l10n) {
     if (_passwordStrength >= 0.75) {
-      return l10n.t('password_strength_strong');
+      return l10n.t('strength_strong');
     }
     if (_passwordStrength >= 0.5) {
-      return l10n.t('password_strength_medium');
+      return l10n.t('strength_good');
     }
-    return l10n.t('password_strength_weak');
+    return l10n.t('strength_weak');
   }
 
   String? _validatePassword(String? value) {
@@ -205,9 +206,9 @@ class _AuthScreenState extends State<AuthScreen> {
           style: textTheme.bodyLarge?.copyWith(color: Colors.white70),
         ),
         const Spacer(),
-        ElevatedButton(
+        PrimaryButton(
+          label: l10n.t('sign_in'),
           onPressed: () => _switchStage(AuthStage.signIn),
-          child: Text(l10n.t('sign_in')),
         ),
         const SizedBox(height: 12),
         OutlinedButton(
@@ -295,9 +296,9 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
           if (!includeName) const SizedBox(height: 16),
-          ElevatedButton(
+          PrimaryButton(
+            label: title,
             onPressed: _handleSubmit,
-            child: Text(title),
           ),
         ],
       ),
@@ -318,11 +319,11 @@ class _AuthScreenState extends State<AuthScreen> {
             validator: _validateEmail,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
+          PrimaryButton(
+            label: l10n.t('continue'),
             onPressed: () {
               _switchStage(AuthStage.signIn);
             },
-            child: Text(l10n.t('continue')),
           ),
         ],
       ),

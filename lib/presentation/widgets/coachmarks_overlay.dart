@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'primary_button.dart';
+
 class CoachmarkStep {
   const CoachmarkStep({
     required this.targetKey,
@@ -129,13 +131,12 @@ class _CoachmarksOverlayState extends State<CoachmarksOverlay> {
                               child: Text(widget.skipLabel),
                             ),
                             const Spacer(),
-                            FilledButton(
+                            PrimaryButton(
+                              label: _index == widget.steps.length - 1
+                                  ? widget.doneLabel
+                                  : widget.nextLabel,
                               onPressed: _next,
-                              child: Text(
-                                _index == widget.steps.length - 1
-                                    ? widget.doneLabel
-                                    : widget.nextLabel,
-                              ),
+                              expand: false,
                             ),
                           ],
                         ),

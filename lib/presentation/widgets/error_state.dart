@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'primary_button.dart';
+
 class ErrorState extends StatelessWidget {
   const ErrorState({
     super.key,
@@ -46,10 +48,10 @@ class ErrorState extends StatelessWidget {
           ],
           if (onRetry != null && retryLabel != null) ...[
             const SizedBox(height: 16),
-            FilledButton.icon(
+            PrimaryButton(
+              label: retryLabel!,
+              icon: Icons.refresh,
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: Text(retryLabel!),
             ),
           ],
         ],

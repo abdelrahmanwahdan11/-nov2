@@ -7,6 +7,7 @@ import '../../../core/signals/signal.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_state.dart';
+import '../../widgets/primary_button.dart';
 
 class EventDetailScreen extends StatelessWidget {
   const EventDetailScreen({super.key, required this.itemId});
@@ -87,9 +88,9 @@ class EventDetailScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(l10n.t('ai_stub_msg')),
               const SizedBox(height: 24),
-              ElevatedButton(
+              PrimaryButton(
+                label: item.type == CatalogType.challenge ? l10n.t('join_now') : l10n.t('start_now'),
                 onPressed: () {},
-                child: Text(item.type == CatalogType.challenge ? l10n.t('join_now') : l10n.t('start_now')),
               ),
             ],
           ),

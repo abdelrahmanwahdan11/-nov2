@@ -5,6 +5,7 @@ import '../../../application/stores/app_store.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/signals/signal.dart';
+import '../../widgets/primary_button.dart';
 
 class PlanScreen extends StatelessWidget {
   const PlanScreen({super.key});
@@ -49,9 +50,9 @@ class PlanScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            PrimaryButton(
+              label: l10n.t('ai_cta'),
               onPressed: () => AppRouter.instance.push('/ai'),
-              child: Text(l10n.t('ai_cta')),
             ),
           ],
         );
@@ -74,8 +75,9 @@ class _PlanCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: theme.cardColor.withOpacity(0.9),
           borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withOpacity(0.06)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

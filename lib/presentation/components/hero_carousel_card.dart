@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/constants/app_gradients.dart';
+
 class HeroCarouselCard extends StatelessWidget {
   const HeroCarouselCard({
     super.key,
@@ -44,15 +46,7 @@ class HeroCarouselCard extends StatelessWidget {
                   },
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.black.withOpacity(0.1), Colors.black.withOpacity(0.75)],
-                  ),
-                ),
-              ),
+              Container(decoration: const BoxDecoration(gradient: AppGradients.imageOverlay)),
               Positioned(
                 left: 24,
                 right: 24,

@@ -4,6 +4,7 @@ import '../../../application/stores/app_store.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/signals/signal.dart';
+import '../../widgets/primary_button.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -89,7 +90,7 @@ class SettingsScreen extends StatelessWidget {
         const SizedBox(height: 24),
         ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          tileColor: theme.cardColor,
+          tileColor: theme.cardColor.withOpacity(0.85),
           title: Text(l10n.t('coachmarks_replay')),
           trailing: const Icon(Icons.play_circle_outline),
           onTap: () => store.setCoachmarksSeen(false),
@@ -102,10 +103,10 @@ class SettingsScreen extends StatelessWidget {
           subtitle: const Text('إصدار تجريبي - بدون باك إند'),
         ),
         const SizedBox(height: 12),
-        FilledButton.icon(
+        PrimaryButton(
+          label: l10n.t('reset_defaults'),
+          icon: Icons.refresh,
           onPressed: store.resetAppearance,
-          icon: const Icon(Icons.refresh),
-          label: Text(l10n.t('reset_defaults')),
         ),
       ],
     );

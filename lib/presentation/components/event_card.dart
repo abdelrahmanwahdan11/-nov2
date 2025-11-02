@@ -23,7 +23,7 @@ class EventCard extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        tileColor: theme.cardColor,
+        tileColor: theme.cardColor.withOpacity(0.85),
         contentPadding: const EdgeInsets.all(16),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(12),

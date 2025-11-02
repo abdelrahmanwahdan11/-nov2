@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../application/stores/app_store.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_gradients.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/router/app_router.dart';
+import '../../widgets/primary_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -31,14 +33,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         titleEn: 'Book fields easily',
       ),
       _OnboardingSlide(
-        imageUrl: 'https://images.unsplash.com/photo-1558611848-73f7eb4001a1',
-        titleAr: 'تحديات ومسارات مشي',
-        titleEn: 'Challenges & Walks',
+        imageUrl: 'https://images.unsplash.com/photo-1517963628607-235ccdd5476e',
+        titleAr: 'تحديات وتمارين شارع',
+        titleEn: 'Challenges & Street Workouts',
+      ),
+      _OnboardingSlide(
+        imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee',
+        titleAr: 'مسارات مشي موقّتة',
+        titleEn: 'Timed walk routes',
       ),
       _OnboardingSlide(
         imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438',
-        titleAr: 'ملف صحي وتحفيز يومي',
-        titleEn: 'Health profile & daily motivation',
+        titleAr: 'حساب صحي وقصص محترفين',
+        titleEn: 'Health profile & pro stories',
       ),
     ];
     _startAutoAdvance();
@@ -90,15 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     fit: BoxFit.cover,
                     semanticLabel: title,
                   ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.transparent, Colors.black87],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
+                  Container(decoration: const BoxDecoration(gradient: AppGradients.imageOverlay)),
                   Positioned(
                     left: 24,
                     right: 24,
@@ -141,13 +140,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                PrimaryButton(
+                  label: l10n.t('get_started'),
                   onPressed: () async {
                     await AppStore.instance.markOnboardingDone();
                     if (!mounted) return;
                     AppRouter.instance.setRoot('/auth');
                   },
-                  child: Text(l10n.t('get_started')),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton(

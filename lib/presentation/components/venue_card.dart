@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/constants/app_gradients.dart';
 import '../../domain/entities/catalog_item.dart';
 
 class VenueCard extends StatelessWidget {
@@ -18,10 +19,15 @@ class VenueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final price = item.pricePerHour != null
+        ? '${item.pricePerHour!.toStringAsFixed(0)} ₪/h'
+        : (item.fee != null ? '${item.fee!.toStringAsFixed(0)} ₪' : '--');
+
     final card = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: theme.cardColor,
+        color: theme.cardColor.withOpacity(0.8),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -29,10 +35,47 @@ class VenueCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-              child: Image.network(
-                item.imageUrl,
-                fit: BoxFit.cover,
-                semanticLabel: item.title,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.cover,
+                    semanticLabel: item.title,
+                  ),
+                  Container(decoration: const BoxDecoration(gradient: AppGradients.imageOverlay)),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 16, color: Colors.white70),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                item.city ?? '-',
+                                style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -41,41 +84,23 @@ class VenueCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.title,
-                  style: theme.textTheme.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
-                    Icon(Icons.location_on_outlined, size: 16, color: theme.colorScheme.primary),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        item.city ?? '-',
-                        style: theme.textTheme.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    if (item.level != null)
+                      Chip(
+                        label: Text(item.level!),
+                        backgroundColor: theme.colorScheme.primary.withOpacity(0.18),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Chip(
-                      label: Text('${item.level ?? 'all'}'),
-                      backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
-                    ),
-                    Text(
-                      item.pricePerHour != null
-                          ? '${item.pricePerHour!.toStringAsFixed(0)} ₪/h'
-                          : (item.fee != null ? '${item.fee!.toStringAsFixed(0)} ₪' : '--'),
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                    ),
+                    if (price != '--')
+                      Chip(
+                        label: Text(price),
+                      ),
+                    if (item.time != null)
+                      Chip(
+                        label: Text(item.time!),
+                      ),
                   ],
                 ),
               ],
