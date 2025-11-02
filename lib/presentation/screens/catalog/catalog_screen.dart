@@ -32,6 +32,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
   bool _hasMore = true;
   int _page = 0;
   CatalogSortOption _sortOption = CatalogSortOption.popular;
+  String? _sportFilter;
+  String? _durationFilter;
+  String? _kcalFilter;
+  String? _priceFilter;
+  List<String> _sportOptions = [];
+
+  static const List<String> _durationRanges = ['<30', '30-45', '45-60', '>60'];
+  static const List<String> _kcalRanges = ['<200', '200-350', '350-500', '>500'];
+  static const List<String> _priceRanges = ['free', '<20', '20-40', '>40'];
 
   @override
   void initState() {
@@ -39,6 +48,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _selectedType = widget.initialType;
     _service = ServiceLocator.instance.catalogService;
     _scrollController.addListener(_onScroll);
+    _loadFilterOptions();
     _fetch(reset: true);
   }
 
@@ -48,7 +58,25 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
+  Future<void> _loadFilterOptions() async {
+    final items = await _service.loadAll();
+    final sports = <String>{};
+    for (final item in items) {
+      final sport = item.sport;
+      if (sport != null && sport.isNotEmpty) {
+        sports.add(sport);
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _sportOptions = sports.toList()..sort();
+    });
+  }
+
   void _applyFilters({CatalogType? type, String? level}) {
+    if (_selectedType == type && _levelFilter == level) {
+      return;
+    }
     setState(() {
       _selectedType = type;
       _levelFilter = level;
@@ -59,6 +87,42 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void _applySort(CatalogSortOption option) {
     if (_sortOption == option) return;
     setState(() => _sortOption = option);
+    _fetch(reset: true);
+  }
+
+  void _setSport(String? sport) {
+    if (_sportFilter == sport) return;
+    setState(() => _sportFilter = sport);
+    _fetch(reset: true);
+  }
+
+  void _setDuration(String? range) {
+    if (_durationFilter == range) return;
+    setState(() => _durationFilter = range);
+    _fetch(reset: true);
+  }
+
+  void _setKcal(String? range) {
+    if (_kcalFilter == range) return;
+    setState(() => _kcalFilter = range);
+    _fetch(reset: true);
+  }
+
+  void _setPrice(String? range) {
+    if (_priceFilter == range) return;
+    setState(() => _priceFilter = range);
+    _fetch(reset: true);
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _selectedType = null;
+      _levelFilter = null;
+      _sportFilter = null;
+      _durationFilter = null;
+      _kcalFilter = null;
+      _priceFilter = null;
+    });
     _fetch(reset: true);
   }
 
@@ -82,6 +146,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
       pageSize: _pageSize,
       type: _selectedType,
       level: _levelFilter,
+      sport: _sportFilter,
+      durationRange: _durationFilter,
+      kcalRange: _kcalFilter,
+      priceRange: _priceFilter,
       sort: _sortOption,
     );
 
@@ -162,7 +230,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             icon: const Icon(Icons.sort),
           ),
           IconButton(
-            onPressed: () => _applyFilters(type: null, level: null),
+            onPressed: _resetFilters,
             icon: const Icon(Icons.refresh),
             tooltip: l10n.t('filters_reset'),
           ),
@@ -184,8 +252,20 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 l10n: l10n,
                 selectedType: _selectedType,
                 levelFilter: _levelFilter,
+                sportFilter: _sportFilter,
+                durationFilter: _durationFilter,
+                kcalFilter: _kcalFilter,
+                priceFilter: _priceFilter,
+                sportOptions: _sportOptions,
+                durationOptions: _durationRanges,
+                kcalOptions: _kcalRanges,
+                priceOptions: _priceRanges,
                 onTypeSelected: (type) => _applyFilters(type: type, level: _levelFilter),
                 onLevelSelected: (level) => _applyFilters(type: _selectedType, level: level),
+                onSportSelected: _setSport,
+                onDurationSelected: _setDuration,
+                onKcalSelected: _setKcal,
+                onPriceSelected: _setPrice,
               ),
             ),
             if (_initialLoading)
@@ -291,66 +371,182 @@ class _FiltersBar extends StatelessWidget {
     required this.l10n,
     required this.selectedType,
     required this.levelFilter,
+    required this.sportFilter,
+    required this.durationFilter,
+    required this.kcalFilter,
+    required this.priceFilter,
+    required this.sportOptions,
+    required this.durationOptions,
+    required this.kcalOptions,
+    required this.priceOptions,
     required this.onTypeSelected,
     required this.onLevelSelected,
+    required this.onSportSelected,
+    required this.onDurationSelected,
+    required this.onKcalSelected,
+    required this.onPriceSelected,
   });
 
   final SahaLocalizations l10n;
   final CatalogType? selectedType;
   final String? levelFilter;
+  final String? sportFilter;
+  final String? durationFilter;
+  final String? kcalFilter;
+  final String? priceFilter;
+  final List<String> sportOptions;
+  final List<String> durationOptions;
+  final List<String> kcalOptions;
+  final List<String> priceOptions;
   final ValueChanged<CatalogType?> onTypeSelected;
   final ValueChanged<String?> onLevelSelected;
+  final ValueChanged<String?> onSportSelected;
+  final ValueChanged<String?> onDurationSelected;
+  final ValueChanged<String?> onKcalSelected;
+  final ValueChanged<String?> onPriceSelected;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final durationItems = [
+      _FilterDropdownItem(value: null, label: l10n.t('duration_any')),
+      ...durationOptions.map(
+        (option) => _FilterDropdownItem(value: option, label: _durationLabel(option)),
+      ),
+    ];
+    final kcalItems = [
+      _FilterDropdownItem(value: null, label: l10n.t('kcal_any')),
+      ...kcalOptions.map(
+        (option) => _FilterDropdownItem(value: option, label: _kcalLabel(option)),
+      ),
+    ];
+    final priceItems = [
+      _FilterDropdownItem(value: null, label: l10n.t('price_any')),
+      ...priceOptions.map(
+        (option) => _FilterDropdownItem(value: option, label: _priceLabel(option)),
+      ),
+    ];
+    final levelItems = [
+      _FilterDropdownItem(value: null, label: l10n.t('all')),
+      _FilterDropdownItem(value: 'beginner', label: l10n.t('beginner')),
+      _FilterDropdownItem(value: 'intermediate', label: l10n.t('intermediate')),
+      _FilterDropdownItem(value: 'advanced', label: l10n.t('advanced')),
+      _FilterDropdownItem(value: 'all', label: l10n.t('all_levels')),
+    ];
+    final sportItems = [
+      _FilterDropdownItem(value: null, label: l10n.t('sport_any')),
+      ...sportOptions.map(
+        (option) => _FilterDropdownItem(value: option, label: option),
+      ),
+    ];
+
+    final filters = <Widget>[
+      _FilterChip(
+        label: l10n.t('venues'),
+        selected: selectedType == CatalogType.venue,
+        onSelected: (value) => onTypeSelected(value ? CatalogType.venue : null),
+      ),
+      const SizedBox(width: 12),
+      _FilterChip(
+        label: l10n.t('challenges'),
+        selected: selectedType == CatalogType.challenge,
+        onSelected: (value) => onTypeSelected(value ? CatalogType.challenge : null),
+      ),
+      const SizedBox(width: 12),
+      _FilterChip(
+        label: l10n.t('walk_routes'),
+        selected: selectedType == CatalogType.walkRoute,
+        onSelected: (value) => onTypeSelected(value ? CatalogType.walkRoute : null),
+      ),
+      const SizedBox(width: 12),
+      _FilterChip(
+        label: l10n.t('street_workout'),
+        selected: selectedType == CatalogType.streetWorkout,
+        onSelected: (value) => onTypeSelected(value ? CatalogType.streetWorkout : null),
+      ),
+      const SizedBox(width: 12),
+      _DropdownFilter(
+        label: l10n.t('level'),
+        value: levelFilter,
+        items: levelItems,
+        onChanged: onLevelSelected,
+      ),
+      const SizedBox(width: 12),
+      _DropdownFilter(
+        label: l10n.t('sport_type'),
+        value: sportFilter,
+        items: sportItems,
+        onChanged: onSportSelected,
+      ),
+      const SizedBox(width: 12),
+      _DropdownFilter(
+        label: l10n.t('duration'),
+        value: durationFilter,
+        items: durationItems,
+        onChanged: onDurationSelected,
+      ),
+      const SizedBox(width: 12),
+      _DropdownFilter(
+        label: l10n.t('kcal'),
+        value: kcalFilter,
+        items: kcalItems,
+        onChanged: onKcalSelected,
+      ),
+      const SizedBox(width: 12),
+      _DropdownFilter(
+        label: l10n.t('price'),
+        value: priceFilter,
+        items: priceItems,
+        onChanged: onPriceSelected,
+      ),
+    ];
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          _FilterChip(
-            label: l10n.t('venues'),
-            selected: selectedType == CatalogType.venue,
-            onSelected: (value) => onTypeSelected(value ? CatalogType.venue : null),
-          ),
-          const SizedBox(width: 12),
-          _FilterChip(
-            label: l10n.t('challenges'),
-            selected: selectedType == CatalogType.challenge,
-            onSelected: (value) => onTypeSelected(value ? CatalogType.challenge : null),
-          ),
-          const SizedBox(width: 12),
-          _FilterChip(
-            label: l10n.t('walk_routes'),
-            selected: selectedType == CatalogType.walkRoute,
-            onSelected: (value) => onTypeSelected(value ? CatalogType.walkRoute : null),
-          ),
-          const SizedBox(width: 12),
-          _FilterChip(
-            label: l10n.t('street_workout'),
-            selected: selectedType == CatalogType.streetWorkout,
-            onSelected: (value) => onTypeSelected(value ? CatalogType.streetWorkout : null),
-          ),
-          const SizedBox(width: 12),
-          DropdownButton<String?>(
-            value: levelFilter,
-            hint: Text(l10n.t('level')),
-            items: [
-              DropdownMenuItem(value: null, child: Text(l10n.t('all'))),
-              DropdownMenuItem(value: 'beginner', child: Text(l10n.t('beginner'))),
-              DropdownMenuItem(value: 'intermediate', child: Text(l10n.t('intermediate'))),
-              DropdownMenuItem(value: 'advanced', child: Text(l10n.t('advanced'))),
-              DropdownMenuItem(value: 'all', child: Text(l10n.t('all_levels'))),
-            ],
-            onChanged: (value) => onLevelSelected(value == null ? null : value),
-            underline: const SizedBox(),
-            borderRadius: BorderRadius.circular(16),
-            style: theme.textTheme.bodyMedium,
-          ),
-        ],
-      ),
+      child: Row(children: filters),
     );
+  }
+
+  String _durationLabel(String option) {
+    switch (option) {
+      case '<30':
+        return l10n.t('duration_under_30');
+      case '30-45':
+        return l10n.t('duration_30_45');
+      case '45-60':
+        return l10n.t('duration_45_60');
+      case '>60':
+        return l10n.t('duration_over_60');
+    }
+    return option;
+  }
+
+  String _kcalLabel(String option) {
+    switch (option) {
+      case '<200':
+        return l10n.t('kcal_under_200');
+      case '200-350':
+        return l10n.t('kcal_200_350');
+      case '350-500':
+        return l10n.t('kcal_350_500');
+      case '>500':
+        return l10n.t('kcal_over_500');
+    }
+    return option;
+  }
+
+  String _priceLabel(String option) {
+    switch (option) {
+      case 'free':
+        return l10n.t('price_free');
+      case '<20':
+        return l10n.t('price_under_20');
+      case '20-40':
+        return l10n.t('price_20_40');
+      case '>40':
+        return l10n.t('price_over_40');
+    }
+    return option;
   }
 }
 
@@ -371,6 +567,57 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: onSelected,
+    );
+  }
+}
+
+class _FilterDropdownItem {
+  const _FilterDropdownItem({required this.value, required this.label});
+
+  final String? value;
+  final String label;
+}
+
+class _DropdownFilter extends StatelessWidget {
+  const _DropdownFilter({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String? value;
+  final List<_FilterDropdownItem> items;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isEnabled = items.length > 1;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      constraints: const BoxConstraints(minWidth: 140),
+      child: DropdownButton<String?>(
+        value: value,
+        hint: Text(label),
+        items: items
+            .map(
+              (item) => DropdownMenuItem<String?>(
+                value: item.value,
+                child: Text(item.label),
+              ),
+            )
+            .toList(),
+        onChanged: isEnabled ? onChanged : null,
+        underline: const SizedBox(),
+        borderRadius: BorderRadius.circular(16),
+        style: theme.textTheme.bodyMedium,
+      ),
     );
   }
 }

@@ -32,13 +32,22 @@ class CatalogService {
     required int pageSize,
     CatalogType? type,
     String? level,
+    String? sport,
+    String? durationRange,
+    String? kcalRange,
+    String? priceRange,
     CatalogSortOption sort = CatalogSortOption.popular,
   }) async {
     final items = await _ensureLoaded();
     final filtered = items.where((item) {
       final matchesType = type == null || item.type == type;
       final matchesLevel = level == null || level == 'all' || item.level == level;
-      return matchesType && matchesLevel;
+      final matchesSport = sport == null || item.sport == sport;
+      final matchesDuration =
+          durationRange == null || _matchesDurationRange(item.durationMinutes, durationRange);
+      final matchesKcal = kcalRange == null || _matchesKcalRange(item.kcal, kcalRange);
+      final matchesPrice = priceRange == null || _matchesPriceRange(item, priceRange);
+      return matchesType && matchesLevel && matchesSport && matchesDuration && matchesKcal && matchesPrice;
     }).toList();
 
     final sorted = _applySort(filtered, sort);
@@ -190,6 +199,58 @@ class CatalogService {
       return double.infinity;
     }
     return price;
+  }
+
+  bool _matchesDurationRange(int? durationMinutes, String range) {
+    if (durationMinutes == null) {
+      return false;
+    }
+    switch (range) {
+      case '<30':
+        return durationMinutes < 30;
+      case '30-45':
+        return durationMinutes >= 30 && durationMinutes <= 45;
+      case '45-60':
+        return durationMinutes > 45 && durationMinutes <= 60;
+      case '>60':
+        return durationMinutes > 60;
+    }
+    return true;
+  }
+
+  bool _matchesKcalRange(int? kcal, String range) {
+    if (kcal == null) {
+      return false;
+    }
+    switch (range) {
+      case '<200':
+        return kcal < 200;
+      case '200-350':
+        return kcal >= 200 && kcal < 350;
+      case '350-500':
+        return kcal >= 350 && kcal <= 500;
+      case '>500':
+        return kcal > 500;
+    }
+    return true;
+  }
+
+  bool _matchesPriceRange(CatalogItem item, String range) {
+    final price = item.pricePerHour ?? item.fee;
+    switch (range) {
+      case 'free':
+        return (price ?? 0) == 0;
+      case '<20':
+        if (price == null) return false;
+        return price > 0 && price < 20;
+      case '20-40':
+        if (price == null) return false;
+        return price >= 20 && price <= 40;
+      case '>40':
+        if (price == null) return false;
+        return price > 40;
+    }
+    return true;
   }
 
   double _distanceForItem(CatalogItem item) {
