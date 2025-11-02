@@ -24,6 +24,7 @@ class AppStore {
   final Signal<Map<String, dynamic>> planMetricsSignal = Signal(<String, dynamic>{});
   final Signal<bool> coachmarksSeenSignal = Signal(false);
   final Signal<bool> reducedMotionSignal = Signal(false);
+  final Signal<int> lastActiveTabSignal = Signal(0);
 
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -60,6 +61,16 @@ class AppStore {
 
     final reducedMotion = _prefs!.getBool('reduced_motion') ?? false;
     reducedMotionSignal.emit(reducedMotion);
+
+    final savedTab = _prefs!.getInt('last_active_tab');
+    if (savedTab != null) {
+      final safeIndex = savedTab < 0
+          ? 0
+          : savedTab > 4
+              ? 4
+              : savedTab;
+      lastActiveTabSignal.emit(safeIndex);
+    }
   }
 
   Future<void> setLocale(Locale locale) async {
@@ -123,6 +134,16 @@ class AppStore {
   Future<void> setReducedMotion(bool value) async {
     reducedMotionSignal.emit(value);
     await _prefs?.setBool('reduced_motion', value);
+  }
+
+  Future<void> setLastActiveTab(int index) async {
+    final clamped = index < 0
+        ? 0
+        : index > 4
+            ? 4
+            : index;
+    lastActiveTabSignal.emit(clamped);
+    await _prefs?.setInt('last_active_tab', clamped);
   }
 
   String? getSortPreference(String screen) {

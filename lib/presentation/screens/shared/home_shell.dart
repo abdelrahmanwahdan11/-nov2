@@ -19,15 +19,22 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _index = 0;
   final GlobalKey _quickActionsKey = GlobalKey();
   final GlobalKey _searchBarKey = GlobalKey();
   final GlobalKey _planTabKey = GlobalKey();
 
+  late final AppStore _store;
+
+  @override
+  void initState() {
+    super.initState();
+    _store = AppStore.instance;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = SahaLocalizations.of(context);
-    final store = AppStore.instance;
+    final store = _store;
     final pages = [
       HomeScreen(
         quickActionsKey: _quickActionsKey,
@@ -46,66 +53,73 @@ class _HomeShellState extends State<HomeShell> {
       l10n.t('profile'),
     ];
 
-    final scaffold = Scaffold(
-      body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (value) => setState(() => _index = value),
-        items: [
-          BottomNavigationBarItem(icon: const Icon(IconlyBold.home), label: labels[0]),
-          BottomNavigationBarItem(icon: const Icon(IconlyBold.bookmark), label: labels[1]),
-          BottomNavigationBarItem(
-            icon: KeyedSubtree(
-              key: _planTabKey,
-              child: const Icon(IconlyBold.graph),
-            ),
-            label: labels[2],
-          ),
-          BottomNavigationBarItem(icon: const Icon(IconlyBold.message), label: labels[3]),
-          BottomNavigationBarItem(icon: const Icon(IconlyBold.profile), label: labels[4]),
-        ],
-      ),
-    );
-
-    return SignalBuilder<bool>(
-      signal: store.coachmarksSeenSignal,
-      builder: (context, seen, _) {
-        if (!seen && _index != 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() => _index = 0);
-            }
-          });
-        }
-
-        return Stack(
-          children: [
-            scaffold,
-            if (!seen)
-              CoachmarksOverlay(
-                steps: [
-                  CoachmarkStep(
-                    targetKey: _quickActionsKey,
-                    message: l10n.t('coachmarks_tip_quick_actions'),
-                  ),
-                  CoachmarkStep(
-                    targetKey: _searchBarKey,
-                    message: l10n.t('coachmarks_tip_search'),
-                  ),
-                  CoachmarkStep(
-                    targetKey: _planTabKey,
-                    message: l10n.t('coachmarks_tip_plan'),
-                  ),
-                ],
-                title: l10n.t('coachmarks_title'),
-                nextLabel: l10n.t('coachmarks_next'),
-                doneLabel: l10n.t('coachmarks_done'),
-                skipLabel: l10n.t('coachmarks_skip'),
-                onFinish: () {
-                  store.setCoachmarksSeen(true);
-                },
+    return SignalBuilder<int>(
+      signal: store.lastActiveTabSignal,
+      builder: (context, index, _) {
+        final scaffold = Scaffold(
+          body: IndexedStack(index: index, children: pages),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: index,
+            onTap: (value) {
+              store.setLastActiveTab(value);
+            },
+            items: [
+              BottomNavigationBarItem(icon: const Icon(IconlyBold.home), label: labels[0]),
+              BottomNavigationBarItem(icon: const Icon(IconlyBold.bookmark), label: labels[1]),
+              BottomNavigationBarItem(
+                icon: KeyedSubtree(
+                  key: _planTabKey,
+                  child: const Icon(IconlyBold.graph),
+                ),
+                label: labels[2],
               ),
-          ],
+              BottomNavigationBarItem(icon: const Icon(IconlyBold.message), label: labels[3]),
+              BottomNavigationBarItem(icon: const Icon(IconlyBold.profile), label: labels[4]),
+            ],
+          ),
+        );
+
+        return SignalBuilder<bool>(
+          signal: store.coachmarksSeenSignal,
+          builder: (context, seen, __) {
+            if (!seen && index != 0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && store.lastActiveTabSignal.value != 0) {
+                  store.setLastActiveTab(0);
+                }
+              });
+            }
+
+            return Stack(
+              children: [
+                scaffold,
+                if (!seen)
+                  CoachmarksOverlay(
+                    steps: [
+                      CoachmarkStep(
+                        targetKey: _quickActionsKey,
+                        message: l10n.t('coachmarks_tip_quick_actions'),
+                      ),
+                      CoachmarkStep(
+                        targetKey: _searchBarKey,
+                        message: l10n.t('coachmarks_tip_search'),
+                      ),
+                      CoachmarkStep(
+                        targetKey: _planTabKey,
+                        message: l10n.t('coachmarks_tip_plan'),
+                      ),
+                    ],
+                    title: l10n.t('coachmarks_title'),
+                    nextLabel: l10n.t('coachmarks_next'),
+                    doneLabel: l10n.t('coachmarks_done'),
+                    skipLabel: l10n.t('coachmarks_skip'),
+                    onFinish: () {
+                      store.setCoachmarksSeen(true);
+                    },
+                  ),
+              ],
+            );
+          },
         );
       },
     );
