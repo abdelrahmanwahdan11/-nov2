@@ -160,7 +160,22 @@ class _ExploreMapScreenState extends State<ExploreMapScreen> {
                           ),
                         ),
                         title: Text(item.title),
-                        subtitle: Text('${entry.distanceKm.toStringAsFixed(1)} km · ${item.city ?? ''}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                Chip(label: Text(_timeWindowLabel(entry.timeWindow, l10n))),
+                                Chip(label: Text(_distanceBandLabel(entry.distanceKm))),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text('${entry.distanceKm.toStringAsFixed(1)} km · ${item.city ?? ''}'),
+                          ],
+                        ),
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -193,6 +208,15 @@ class _ExploreMapScreenState extends State<ExploreMapScreen> {
       final distanceMatch = _distanceFilter == null || _matchesDistance(entry.distanceKm, _distanceFilter!);
       return sportMatch && levelMatch && priceMatch && timeMatch && distanceMatch;
     }).toList();
+  }
+
+  String _distanceBandLabel(double km) {
+    if (km <= 3) {
+      return '<=3 km';
+    } else if (km <= 6) {
+      return '3-6 km';
+    }
+    return '>6 km';
   }
 
   List<String> _sportOptions() {
@@ -294,18 +318,19 @@ class _MapMock extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(left: padding.horizontal / 2, right: padding.horizontal / 2, top: 24),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          height: 240,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF0F1216), Color(0xFF1F2731)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            height: 240,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0F1216), Color(0xFF1F2731)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-          ),
-          child: Stack(
+            child: Stack(
             children: [
               Positioned.fill(
                 child: Opacity(
@@ -333,6 +358,7 @@ class _MapMock extends StatelessWidget {
                 child: Text(l10n.t('map_overview'), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
               ),
             ],
+          ),
           ),
         ),
       ),

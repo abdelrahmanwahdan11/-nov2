@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
@@ -51,7 +52,12 @@ class PrimaryButton extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onPressed,
+            onTap: onPressed == null
+                ? null
+                : () {
+                    HapticFeedback.lightImpact();
+                    onPressed?.call();
+                  },
             borderRadius: radius,
             child: Ink(
               decoration: BoxDecoration(
