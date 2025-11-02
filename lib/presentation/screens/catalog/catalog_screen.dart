@@ -8,6 +8,7 @@ import '../../../core/router/app_router.dart';
 import '../../../domain/entities/catalog_item.dart';
 import '../../components/venue_card.dart';
 import '../../widgets/catalog_item_overlay.dart';
+import '../../widgets/catalog_sort_menu.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/shimmer_placeholder.dart';
 
@@ -205,29 +206,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
       appBar: AppBar(
         title: Text(l10n.t('catalog')),
         actions: [
-          PopupMenuButton<CatalogSortOption>(
-            tooltip: l10n.t('sort_by'),
-            initialValue: _sortOption,
+          CatalogSortMenu(
+            value: _sortOption,
             onSelected: _applySort,
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: CatalogSortOption.popular,
-                child: Text(l10n.t('sort_popular')),
-              ),
-              PopupMenuItem(
-                value: CatalogSortOption.priceLowHigh,
-                child: Text(l10n.t('sort_price_low_high')),
-              ),
-              PopupMenuItem(
-                value: CatalogSortOption.nearest,
-                child: Text(l10n.t('sort_nearest')),
-              ),
-              PopupMenuItem(
-                value: CatalogSortOption.timeSoonest,
-                child: Text(l10n.t('sort_time_soonest')),
-              ),
-            ],
-            icon: const Icon(Icons.sort),
           ),
           IconButton(
             onPressed: _resetFilters,
