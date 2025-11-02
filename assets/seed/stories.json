@@ -1,0 +1,11 @@
+[
+  {
+    "id": "s_001",
+    "userId": "u_pro_01",
+    "isPro": true,
+    "mediaUrl": "placeholder:story",
+    "caption": "روتين صباحي للمشي.",
+    "createdAt": "2025-11-01T05:30:00",
+    "likes": 23
+  }
+]

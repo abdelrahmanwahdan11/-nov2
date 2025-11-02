@@ -1,0 +1,19 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    invalid_null_aware_operator: error
+    missing_return: warning
+    prefer_const_constructors: ignore
+
+linter:
+  rules:
+    prefer_relative_imports: true
+    always_use_package_imports: false
+    avoid_print: true
+    prefer_const_constructors: true
+    sort_child_properties_last: true

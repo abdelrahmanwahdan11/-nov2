@@ -1,0 +1,22 @@
+[
+  {
+    "id": "u_001",
+    "name": "ليان",
+    "gender": "f",
+    "age": 26,
+    "height_cm": 165,
+    "weight_kg": 60,
+    "level": "beginner",
+    "preferences": ["walk", "football"],
+    "avatarUrl": null
+  },
+  {
+    "id": "u_pro_01",
+    "name": "مدرّب سالم",
+    "gender": "m",
+    "age": 32,
+    "level": "advanced",
+    "preferences": ["walk", "street"],
+    "avatarUrl": null
+  }
+]
