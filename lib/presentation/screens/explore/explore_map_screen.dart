@@ -331,34 +331,47 @@ class _MapMock extends StatelessWidget {
               ),
             ),
             child: Stack(
-            children: [
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 0.25,
-                  child: GridPaper(
-                    color: Colors.white24,
-                    divisions: 3,
-                    interval: 60,
-                    subdivisions: 2,
+              children: [
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.25,
+                    child: GridPaper(
+                      color: Colors.white24,
+                      divisions: 3,
+                      interval: 60,
+                      subdivisions: 2,
+                    ),
                   ),
                 ),
-              ),
-              ...entries.map((entry) {
-                final latRatio = maxLat == minLat ? 0.5 : (entry.item.lat! - minLat) / (maxLat - minLat);
-                final lonRatio = maxLon == minLon ? 0.5 : (entry.item.lon! - minLon) / (maxLon - minLon);
-                return Positioned(
-                  left: lonRatio * (MediaQuery.of(context).size.width - padding.horizontal - 48) + 24,
-                  top: (1 - latRatio) * 200 + 20,
-                  child: _MapMarker(entry: entry),
-                );
-              }),
-              Positioned(
-                left: 24,
-                top: 16,
-                child: Text(l10n.t('map_overview'), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
-              ),
-            ],
-          ),
+                Positioned.fill(
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _RoutePainter(
+                        entries: entries,
+                        minLat: minLat,
+                        maxLat: maxLat,
+                        minLon: minLon,
+                        maxLon: maxLon,
+                      ),
+                    ),
+                  ),
+                ),
+                ...entries.map((entry) {
+                  final latRatio = maxLat == minLat ? 0.5 : (entry.item.lat! - minLat) / (maxLat - minLat);
+                  final lonRatio = maxLon == minLon ? 0.5 : (entry.item.lon! - minLon) / (maxLon - minLon);
+                  return Positioned(
+                    left: lonRatio * (MediaQuery.of(context).size.width - padding.horizontal - 48) + 24,
+                    top: (1 - latRatio) * 200 + 20,
+                    child: _MapMarker(entry: entry),
+                  );
+                }),
+                Positioned(
+                  left: 24,
+                  top: 16,
+                  child: Text(l10n.t('map_overview'), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -445,4 +458,63 @@ class _ExploreEntry {
   final CatalogItem item;
   final double distanceKm;
   final String timeWindow;
+}
+
+class _RoutePainter extends CustomPainter {
+  const _RoutePainter({
+    required this.entries,
+    required this.minLat,
+    required this.maxLat,
+    required this.minLon,
+    required this.maxLon,
+  });
+
+  final List<_ExploreEntry> entries;
+  final double minLat;
+  final double maxLat;
+  final double minLon;
+  final double maxLon;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (entries.length < 2) {
+      return;
+    }
+
+    final horizontalMargin = 24.0;
+    final verticalMargin = 20.0;
+    final usableWidth = size.width - horizontalMargin * 2;
+    final usableHeight = size.height - verticalMargin * 2;
+
+    final path = Path();
+    for (var i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      final lat = entry.item.lat!;
+      final lon = entry.item.lon!;
+      final latRatio = maxLat == minLat ? 0.5 : (lat - minLat) / (maxLat - minLat);
+      final lonRatio = maxLon == minLon ? 0.5 : (lon - minLon) / (maxLon - minLon);
+      final dx = horizontalMargin + lonRatio * usableWidth;
+      final dy = verticalMargin + (1 - latRatio) * usableHeight;
+      if (i == 0) {
+        path.moveTo(dx, dy);
+      } else {
+        path.lineTo(dx, dy);
+      }
+    }
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..shader = const LinearGradient(
+        colors: [Color(0xFFCBF94E), Color(0xFFF72585)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoutePainter oldDelegate) {
+    return true;
+  }
 }

@@ -133,7 +133,9 @@ class CatalogService {
     return lower
         .replaceAll(RegExp('[أإآ]'), 'ا')
         .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي');
+        .replaceAll('ى', 'ي')
+        .replaceAll(RegExp('[\u064B-\u0652]'), '')
+        .replaceAll(RegExp('\u0640'), '');
   }
 
   List<CatalogItem> _applySort(

@@ -180,13 +180,14 @@ class _CatalogItemOverlayState extends State<CatalogItemOverlay> {
       onVerticalDragEnd: _handleDragEnd,
       child: Material(
         color: Colors.transparent,
-        child: Stack(
-          children: [
-            Center(
-              child: Hero(
-                tag: widget.heroTag,
-                child: Material(
-                  color: Colors.transparent,
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: Hero(
+                  tag: widget.heroTag,
+                  child: Material(
+                    color: Colors.transparent,
                   child: AnimatedScale(
                     duration: const Duration(milliseconds: 250),
                     scale: 1.0,
@@ -239,16 +240,17 @@ class _CatalogItemOverlayState extends State<CatalogItemOverlay> {
                 ),
               ),
             ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              right: 24,
-              child: IconButton(
-                style: IconButton.styleFrom(backgroundColor: Colors.black54),
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Colors.white),
+              Positioned(
+                top: 16,
+                right: 24,
+                child: IconButton(
+                  style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -313,10 +315,17 @@ class _FrontCard extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 3 / 4,
-            child: Image.network(
-              item.imageUrl,
-              fit: BoxFit.cover,
-              semanticLabel: item.title,
+            child: ClipRect(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 2.5,
+                panEnabled: true,
+                child: Image.network(
+                  item.imageUrl,
+                  fit: BoxFit.cover,
+                  semanticLabel: item.title,
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -375,7 +384,7 @@ class _FrontCard extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
                 Text(
-                  l10n.t('tap_to_flip'),
+                  '${l10n.t('tap_to_flip')} · ${l10n.t('zoom')}',
                   style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
                 ),
               ],
