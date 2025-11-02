@@ -168,7 +168,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             top: 56,
             right: 24,
             child: TextButton(
-              onPressed: () {
+              onPressed: () async {
+                await AppStore.instance.markOnboardingDone();
+                if (!mounted) return;
                 AppRouter.instance.setRoot('/auth');
               },
               child: Text(l10n.t('continue')), // skip to auth
