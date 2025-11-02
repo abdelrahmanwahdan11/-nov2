@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+
+import '../../../application/stores/app_store.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../core/router/app_router.dart';
+import '../../../core/signals/signal.dart';
+import '../../widgets/primary_button.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = SahaLocalizations.of(context);
+    final theme = Theme.of(context);
+    final store = AppStore.instance;
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Text(l10n.t('app_settings'), style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        SignalBuilder<bool>(
+          signal: store.darkModeSignal,
+          builder: (context, isDark, _) {
+            return SwitchListTile(
+              value: isDark,
+              title: Text(l10n.t('dark_mode')),
+              onChanged: (value) => store.setDarkMode(value),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        SignalBuilder<bool>(
+          signal: store.reducedMotionSignal,
+          builder: (context, reducedMotion, _) {
+            return SwitchListTile(
+              value: reducedMotion,
+              title: Text(l10n.t('reduced_motion')),
+              onChanged: (value) => store.setReducedMotion(value),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        SignalBuilder<Locale>(
+          signal: store.localeSignal,
+          builder: (context, locale, _) {
+            return DropdownButtonFormField<String>(
+              value: locale.languageCode,
+              decoration: InputDecoration(labelText: l10n.t('language')),
+              items: [
+                DropdownMenuItem(value: 'ar', child: Text(l10n.t('language_ar'))),
+                DropdownMenuItem(value: 'en', child: Text(l10n.t('language_en'))),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  store.setLocale(Locale(value));
+                }
+              },
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        Text(l10n.t('primary_color_picker'), style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        SignalBuilder<Color>(
+          signal: store.primaryColorSignal,
+          builder: (context, color, _) {
+            final palette = const [
+              AppColors.primary,
+              Color(0xFF22D3EE),
+              Color(0xFFF72585),
+              Color(0xFF22C55E),
+              Color(0xFFF59E0B),
+              Color(0xFFEF4444),
+            ];
+            return Wrap(
+              spacing: 12,
+              children: palette
+                  .map(
+                    (swatch) => GestureDetector(
+                      onTap: () => store.setPrimaryColor(swatch),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [swatch, swatch.withOpacity(0.7)],
+                          ),
+                          border: Border.all(
+                            color: swatch.value == color.value ? Colors.white : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor.withOpacity(0.85),
+          title: Text(l10n.t('coachmarks_replay')),
+          trailing: const Icon(Icons.play_circle_outline),
+          onTap: () => store.setCoachmarksSeen(false),
+        ),
+        const SizedBox(height: 32),
+        Text(l10n.t('account_settings'), style: theme.textTheme.titleMedium),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.person_outline),
+          title: Text(l10n.t('edit_profile')),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.t('coming_soon'))),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.lock_reset),
+          title: Text(l10n.t('change_password')),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.t('coming_soon'))),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          leading: const Icon(Icons.logout),
+          title: Text(l10n.t('sign_out')),
+          onTap: () async {
+            await store.setAuthenticated(false);
+            AppRouter.instance.setRoot('/auth');
+          },
+        ),
+        const SizedBox(height: 24),
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          tileColor: theme.cardColor,
+          title: Text(l10n.t('about')),
+          subtitle: const Text('إصدار تجريبي - بدون باك إند'),
+        ),
+        const SizedBox(height: 12),
+        PrimaryButton(
+          label: l10n.t('reset_defaults'),
+          icon: Icons.refresh,
+          onPressed: store.resetAppearance,
+        ),
+      ],
+    );
+  }
+}
